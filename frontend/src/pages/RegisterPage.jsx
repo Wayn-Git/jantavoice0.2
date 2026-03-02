@@ -42,7 +42,7 @@ export default function RegisterPage() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4 pt-16">
       <div className="bg-white border border-gray-200 rounded-2xl shadow-lg w-full max-w-md p-8">
         <div className="text-center mb-7">
-          <div className="w-14 h-14 bg-gradient-to-br from-india-green to-india-green-dark rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3 shadow-md">📢</div>
+          <img src="/logo.jpeg" alt="Janta Voice Logo" className="w-16 h-auto mx-auto mb-3 object-contain drop-shadow-sm mix-blend-multiply" />
           <h1 className="font-heading font-bold text-2xl">Create Account</h1>
           <p className="text-gray-500 text-sm mt-1">Join Janta Voice — file and track civic complaints</p>
         </div>
@@ -62,11 +62,11 @@ export default function RegisterPage() {
             {form.password && (
               <div className="mt-2">
                 <div className="flex gap-1 mb-1">
-                  {[0,1,2,3].map(i => (
-                    <div key={i} className={`flex-1 h-1 rounded-full ${i < strength ? strengthColors[strength-1] : 'bg-gray-200'}`} />
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} className={`flex-1 h-1 rounded-full ${i < strength ? strengthColors[strength - 1] : 'bg-gray-200'}`} />
                   ))}
                 </div>
-                <p className="text-xs text-gray-400">{strengthLabels[strength-1] || 'Too short'}</p>
+                <p className="text-xs text-gray-400">{strengthLabels[strength - 1] || 'Too short'}</p>
               </div>
             )}
           </div>

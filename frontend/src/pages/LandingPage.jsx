@@ -46,7 +46,10 @@ export default function LandingPage() {
             <div className="bg-white border border-gray-200 rounded-2xl shadow-xl overflow-hidden">
               <div className="bg-gradient-to-r from-saffron to-saffron-dark p-5 text-white">
                 <div className="flex justify-between items-center mb-4">
-                  <span className="font-heading font-bold text-lg">📢 Janta Voice</span>
+                  <span className="font-heading font-bold text-lg flex items-center gap-2">
+                    <img src="/logo.jpeg" alt="Janta Voice" className="w-6 h-6 object-contain bg-white rounded px-0.5" />
+                    Janta Voice
+                  </span>
                   <span className="bg-white/25 text-xs font-bold px-3 py-1 rounded-full">● LIVE</span>
                 </div>
                 <div className="bg-white rounded-xl p-3 space-y-2.5">
@@ -109,7 +112,10 @@ export default function LandingPage() {
 
       <footer className="bg-gray-900 text-gray-400 py-6 px-6">
         <div className="max-w-5xl mx-auto flex flex-wrap items-center justify-between gap-4 text-sm">
-          <div className="font-heading font-bold text-white text-lg"><span className="text-saffron">JANTA</span> VOICE</div>
+          <div className="font-heading font-bold text-white text-lg flex items-center gap-2">
+            <img src="/logo.jpeg" alt="Janta Voice Logo" className="w-7 h-7 object-contain bg-white rounded p-0.5" />
+            <span><span className="text-saffron">JANTA</span> VOICE</span>
+          </div>
           <span>Raise. Report. Resolve.</span>
           <span>Built for the citizens of India 🇮🇳</span>
         </div>

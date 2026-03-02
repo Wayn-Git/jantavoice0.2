@@ -19,8 +19,7 @@ export default function Navbar({ unread = 0 }) {
       <nav className="fixed top-1 left-0 right-0 z-40 bg-white/95 backdrop-blur border-b border-gray-200 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-saffron to-saffron-dark rounded-xl flex items-center justify-center text-xl shadow-md">📢</div>
-            <span className="font-heading font-bold text-xl tracking-wide"><span className="text-saffron">JANTA</span> VOICE</span>
+            <img src="/logo.jpeg" alt="Janta Voice Logo" className="h-12 w-auto object-contain drop-shadow-sm mix-blend-multiply" />
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
