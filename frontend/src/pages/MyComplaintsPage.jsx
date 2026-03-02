@@ -3,9 +3,8 @@ import { Link } from 'react-router-dom';
 import { complaintAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import StatusTimeline from '../components/StatusTimeline';
-import ComplaintLetterGenerator from '../components/ComplaintLetterGenerator';
 import { CATEGORY_ICONS, STATUS_COLORS, formatDate, timeAgo } from '../utils/helpers';
-import { FaTrash, FaEye, FaFileAlt } from 'react-icons/fa';
+import { FaTrash, FaEye, FaFileAlt, FaSpinner } from 'react-icons/fa';
 import toast from 'react-hot-toast';
 
 export default function MyComplaintsPage() {
@@ -13,7 +12,7 @@ export default function MyComplaintsPage() {
   const [complaints, setComplaints] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState('all');
-  const [activeLetterComplaint, setActiveLetterComplaint] = useState(null);
+  const [generatingId, setGeneratingId] = useState(null);
 
   useEffect(() => {
     if (!isAuthenticated) return;
@@ -43,13 +42,28 @@ export default function MyComplaintsPage() {
     } catch { toast.error('Cannot delete'); }
   };
 
-  const handleLetterGenerated = async () => {
-    if (!activeLetterComplaint) return;
+  const handleLetterDownload = async (id) => {
+    setGeneratingId(id);
+    const toastId = toast.loading('🤖 AI is drafting your letter...');
     try {
-      const { data } = await complaintAPI.getById(activeLetterComplaint._id);
+      const res = await complaintAPI.generateLetter(id);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `complaint-letter.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      toast.success('Letter downloaded!', { id: toastId });
+
+      const { data } = await complaintAPI.getById(id);
       setComplaints(prev => prev.map(c => c._id === data.complaint._id ? data.complaint : c));
-      setActiveLetterComplaint(data.complaint);
-    } catch { }
+    } catch (err) {
+      toast.error('Failed to generate letter', { id: toastId });
+    } finally {
+      setGeneratingId(null);
+    }
   };
 
   return (
@@ -98,13 +112,13 @@ export default function MyComplaintsPage() {
                       {c.statusHistory?.some(h => h.source === 'automation') && <span className="text-sm" title="Auto-Escalated">🤖</span>}
                     </div>
                     <div className="flex gap-1 mt-1">
-                      <button onClick={() => setActiveLetterComplaint(c)} className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 transition-colors tooltip-wrap" title="Generate Letter">
-                        <FaFileAlt className="text-sm" />
+                      <button onClick={() => handleLetterDownload(c._id)} disabled={generatingId === c._id} className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 transition-colors tooltip-wrap" title="Generate Letter">
+                        {generatingId === c._id ? <FaSpinner className="animate-spin text-sm" /> : <FaFileAlt className="text-sm" />}
                       </button>
                       <Link to={`/complaint/${c._id}`} className="w-8 h-8 bg-gray-100 hover:bg-saffron-pale rounded-lg flex items-center justify-center text-gray-500 hover:text-saffron transition-colors">
                         <FaEye className="text-sm" />
                       </Link>
-                      <button onClick={() => handleDelete(c._id)} className="w-8 h-8 bg-gray-100 hover:bg-red-50 rounded-lg flex items-center justify-center text-gray-400 hover:text-red-500 transition-colors">
+                      <button onClick={() => handleDelete(c._id)} className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:text-saffron-dark transition-colors">
                         <FaTrash className="text-sm" />
                       </button>
                     </div>
@@ -112,7 +126,7 @@ export default function MyComplaintsPage() {
                 </div>
                 <StatusTimeline statusHistory={c.statusHistory || []} currentStatus={c.status} />
                 {c.adminNote && (
-                  <div className="mt-3 bg-amber-50 border border-amber-200 rounded-xl p-2.5 text-xs text-amber-800 flex gap-2">
+                  <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs text-gray-800 flex gap-2">
                     💬 <span><strong>Admin:</strong> {c.adminNote}</span>
                   </div>
                 )}
@@ -121,13 +135,6 @@ export default function MyComplaintsPage() {
           </div>
         )}
       </div>
-
-      <ComplaintLetterGenerator
-        isOpen={!!activeLetterComplaint}
-        onClose={() => setActiveLetterComplaint(null)}
-        complaint={activeLetterComplaint}
-        onGenerated={handleLetterGenerated}
-      />
     </div>
   );
 }

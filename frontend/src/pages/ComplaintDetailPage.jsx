@@ -3,7 +3,6 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { complaintAPI, govAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import StatusTimeline from '../components/StatusTimeline';
-import ComplaintLetterGenerator from '../components/ComplaintLetterGenerator';
 import GovStatusBadge from '../components/GovStatusBadge';
 import { CATEGORY_ICONS, STATUS_COLORS, timeAgo, formatDate, getInitials } from '../utils/helpers';
 import { FaHeart, FaRegHeart, FaArrowLeft, FaTrash, FaBuilding, FaExternalLinkAlt } from 'react-icons/fa';
@@ -20,7 +19,7 @@ export default function ComplaintDetailPage() {
   const [comment, setComment] = useState('');
   const [commenting, setCommenting] = useState(false);
   const [imgIdx, setImgIdx] = useState(0);
-  const [showLetterGen, setShowLetterGen] = useState(false);
+  const [downloadingLetter, setDownloadingLetter] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -66,11 +65,29 @@ export default function ComplaintDetailPage() {
     } catch { toast.error('Cannot delete'); }
   };
 
-  const handleLetterGenerated = async () => {
+  const handleLetterDownload = async () => {
+    setDownloadingLetter(true);
+    const toastId = toast.loading('🤖 AI is drafting your letter...');
     try {
+      const res = await complaintAPI.generateLetter(id);
+      const blob = new Blob([res.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `complaint-letter.pdf`);
+      document.body.appendChild(link);
+      link.click();
+      link.parentNode.removeChild(link);
+      toast.success('Letter downloaded!', { id: toastId });
+
+      // Refresh to get referenceNumber 
       const { data } = await complaintAPI.getById(id);
       setComplaint(data.complaint);
-    } catch { }
+    } catch (err) {
+      toast.error('Failed to generate letter', { id: toastId });
+    } finally {
+      setDownloadingLetter(false);
+    }
   };
 
   if (loading) return (
@@ -123,9 +140,9 @@ export default function ComplaintDetailPage() {
                 <span className="bg-saffron-pale text-saffron-dark text-xs font-bold px-2 py-1 rounded-full">
                   {CATEGORY_ICONS[complaint.category]} {complaint.category}
                 </span>
-                <span className={`text-xs font-bold px-2 py-1 rounded-full ${complaint.priority === 'Critical' ? 'bg-red-100 text-red-700' :
+                <span className={`text-xs font-bold px-2 py-1 rounded-full ${complaint.priority === 'Critical' ? 'bg-saffron text-white shadow-sm' :
                   complaint.priority === 'High' ? 'bg-saffron-pale text-saffron-dark' :
-                    complaint.priority === 'Medium' ? 'bg-amber-100 text-amber-700' : 'bg-india-green-pale text-india-green'
+                    complaint.priority === 'Medium' ? 'bg-gray-200 text-gray-800' : 'bg-india-green-pale text-india-green-dark'
                   }`}>{complaint.priority} Priority</span>
               </div>
               <h1 className="font-heading font-bold text-2xl leading-tight mb-3">{complaint.title}</h1>
@@ -146,14 +163,14 @@ export default function ComplaintDetailPage() {
                 </div>
               )}
               <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <button onClick={handleLike} className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${liked ? 'bg-red-50 text-red-500 border border-red-200' : 'bg-gray-100 text-gray-500 hover:bg-red-50 hover:text-red-400 border border-transparent'}`}>
+                <button onClick={handleLike} className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${liked ? 'bg-saffron-pale text-saffron-dark border border-saffron/20' : 'bg-gray-100 text-gray-500 hover:bg-saffron-pale hover:text-saffron-dark border border-transparent'}`}>
                   {liked ? <FaHeart /> : <FaRegHeart />} {likesCount} {liked ? 'Liked' : 'Like'}
                 </button>
                 <div className="flex items-center gap-3 text-xs text-gray-400">
                   <span>👁️ {complaint.views} views</span>
                   <span>💬 {complaint.comments?.length || 0} comments</span>
                   {(isOwner || isAdmin) && (
-                    <button onClick={handleDelete} className="text-red-400 hover:text-red-600 flex items-center gap-1">
+                    <button onClick={handleDelete} className="text-gray-400 hover:text-saffron-dark flex items-center gap-1">
                       <FaTrash /> Delete
                     </button>
                   )}
@@ -163,9 +180,9 @@ export default function ComplaintDetailPage() {
 
             {/* Admin note */}
             {complaint.adminNote && (
-              <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4">
-                <p className="text-xs font-bold text-amber-600 uppercase tracking-wide mb-1">Admin Note</p>
-                <p className="text-sm text-amber-800">{complaint.adminNote}</p>
+              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
+                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Admin Note</p>
+                <p className="text-sm text-gray-800">{complaint.adminNote}</p>
               </div>
             )}
 
@@ -224,73 +241,102 @@ export default function ComplaintDetailPage() {
             </div>
 
             {(isOwner || isAdmin) && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-500 mb-3">Gov Integration</h4>
-                {complaint.govTicket ? (
-                  <div className="space-y-3">
-                    <div className="bg-blue-50 border border-blue-100 p-3 rounded-xl flex items-center justify-between">
-                      <div className="text-xs text-blue-800 font-bold">
-                        <FaBuilding className="inline mr-1" /> {complaint.govTicket.portalName}
-                      </div>
-                      <a href={complaint.govTicket.ticketUrl} target="_blank" rel="noreferrer" className="text-blue-600 hover:text-blue-800"><FaExternalLinkAlt className="text-xs" /></a>
-                    </div>
-                    <div className="text-sm font-semibold text-gray-700">Ticket #: {complaint.govTicket.ticketId}</div>
-                    <GovStatusBadge status={complaint.govTicket.currentStatus} />
-                    <Link to="/gov-tracking" className="btn-secondary w-full text-center text-xs py-2 block">Track Details</Link>
-                  </div>
-                ) : (
-                  <Link to="/gov-tracking" className="btn-primary w-full text-center text-sm py-2 flex justify-center items-center gap-2">
-                    <FaBuilding /> Submit to Gov Portal
-                  </Link>
-                )}
-              </div>
-            )}
-
-            {(isOwner || isAdmin) && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-500 mb-3">Formal Document</h4>
-                {complaint.referenceNumber ? (
-                  <div className="flex flex-col gap-2">
-                    <p className="text-sm font-bold text-gray-800">Ref: {complaint.referenceNumber}</p>
-                    <button onClick={() => setShowLetterGen(true)} className="btn-secondary w-full text-center text-sm py-2 flex items-center justify-center gap-2">
-                      📄 View Letter
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setShowLetterGen(true)} className="btn-primary w-full text-center text-sm py-2 flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 border-none">
-                    📄 Generate Letter
-                  </button>
-                )}
-              </div>
-            )}
-
-            {(isOwner || isAdmin) && (
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 text-white border border-gray-700 rounded-2xl p-4 relative overflow-hidden">
+              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-2xl p-4 text-white relative overflow-hidden">
                 <div className="absolute top-0 right-0 p-3 opacity-10 text-6xl">🤖</div>
                 <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-400 mb-3 relative z-10 flex items-center gap-2">
-                  Automation
+                  ⚡ Automation Status
                 </h4>
-                <div className="space-y-2 text-xs relative z-10">
+                <div className="space-y-3 text-xs relative z-10">
                   <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
-                    <span className="text-gray-400">Auto-submit:</span>
-                    <span className={complaint.govTicket ? "text-green-400 font-bold" : "text-amber-400 font-bold"}>
-                      {complaint.govTicket ? 'Completed' : 'Pending'}
+                    <span className="text-gray-400">Auto-monitoring:</span>
+                    <span className="flex items-center gap-1 text-india-green font-bold">
+                      <span className="w-2 h-2 rounded-full bg-india-green animate-pulse"></span> Active
                     </span>
                   </div>
                   <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
-                    <span className="text-gray-400">Formal Letter:</span>
-                    <span className={complaint.referenceNumber ? "text-green-400 font-bold" : "text-gray-500 font-bold"}>
-                      {complaint.referenceNumber ? 'Generated' : 'Not yet'}
+                    <span className="text-gray-400">Gov Submission:</span>
+                    <span className={complaint.govTicket ? "text-india-green font-bold" : "text-saffron font-bold"}>
+                      {complaint.govTicket ? `GR#${complaint.govTicket.ticketId || complaint.govTicket.slice(-6)}` : 'Pending'}
                     </span>
                   </div>
                   <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
-                    <span className="text-gray-400">Auto-escalation:</span>
-                    <span className={complaint.priority === 'Critical' ? "text-red-400 font-bold" : "text-green-400 font-bold"}>
-                      {complaint.statusHistory?.some(h => h.source === 'automation' && h.details?.includes('Escalate')) || complaint.priority === 'Critical' ? 'Active' : 'Monitoring'}
-                    </span>
+                    <span className="text-gray-400">Next auto-check:</span>
+                    <span className="text-gray-300 font-bold">in ~24 mins</span>
                   </div>
-                  <div className="text-center pt-2 text-gray-500 font-mono text-[10px]">
-                    System checks every 30m
+
+                  <div className="pt-2 border-t border-gray-700 mt-2">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">📄 Formal Letter</div>
+                    {complaint.referenceNumber ? (
+                      <button onClick={handleLetterDownload} disabled={downloadingLetter} className="btn-secondary w-full text-center text-xs py-2 flex items-center justify-center gap-2 border-gray-600 bg-gray-800 text-white hover:bg-gray-700 hover:text-white transition-colors">
+                        {downloadingLetter ? 'Downloading...' : 'Download PDF'}
+                      </button>
+                    ) : (
+                      <button onClick={handleLetterDownload} disabled={downloadingLetter} className="btn-primary w-full text-center text-xs py-2 flex items-center justify-center gap-2 border-none">
+                        {downloadingLetter ? 'Generating...' : 'Generate Letter'}
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {complaint.govTicket && (
+              <div className="bg-white border border-gray-200 rounded-2xl p-4">
+                <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-500 mb-3 flex items-center gap-2">
+                  🏛️ Government Ticket
+                </h4>
+
+                <div className="space-y-3">
+                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl">
+                    <div className="flex justify-between items-center mb-1">
+                      <span className="text-xs text-gray-500">Ticket ID</span>
+                      <span className="text-[10px] text-gray-500 bg-gray-200 px-2 py-0.5 rounded font-bold uppercase tracking-wide">{complaint.govTicket.portalName || 'CPGRAMS'}</span>
+                    </div>
+                    <div className="flex justify-between items-center mt-1">
+                      <span className="font-mono text-sm font-bold text-gray-800">{complaint.govTicket.ticketId || complaint.govTicket}</span>
+                      <button onClick={() => { navigator.clipboard.writeText(complaint.govTicket.ticketId || complaint.govTicket); toast.success('Ticket ID Copied!'); }} className="text-saffron hover:text-saffron-dark text-xs font-bold transition-colors bg-saffron-pale px-2 py-1 rounded">Copy</button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Current Status</div>
+                    <GovStatusBadge status={complaint.govTicket.currentStatus || 'Submitted'} />
+                  </div>
+
+                  {complaint.govTicket.statusHistory && (
+                    <div className="pt-2 border-t border-gray-100">
+                      <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Progression</h5>
+                      <div className="space-y-2">
+                        {complaint.govTicket.statusHistory?.slice(-3).map((h, i) => (
+                          <div key={i} className="flex gap-2 text-xs">
+                            <div className="text-india-green mt-0.5">●</div>
+                            <div>
+                              <div className="font-bold text-gray-700">{h.status}</div>
+                              <div className="text-[10px] text-gray-400">{timeAgo(h.timestamp)}</div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 mt-2">
+                    <a href={complaint.govTicket.ticketUrl || '#'} target="_blank" rel="noreferrer" className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 transition-colors">
+                      Portal <FaExternalLinkAlt className="text-[10px]" />
+                    </a>
+                    <button onClick={async () => {
+                      const tid = toast.loading('Checking status...');
+                      try {
+                        await govAPI.checkStatus(complaint.govTicket.ticketId || complaint.govTicket);
+                        const { data } = await complaintAPI.getById(id);
+                        setComplaint(data.complaint);
+                        toast.success('Status updated', { id: tid });
+                      } catch {
+                        toast.error('Check failed', { id: tid });
+                      }
+                    }} className="btn-secondary text-xs py-2 flex items-center justify-center gap-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                      🔄 Check Now
+                    </button>
                   </div>
                 </div>
               </div>
@@ -305,13 +351,6 @@ export default function ComplaintDetailPage() {
           </div>
         </div>
       </div>
-
-      <ComplaintLetterGenerator
-        isOpen={showLetterGen}
-        onClose={() => setShowLetterGen(false)}
-        complaint={complaint}
-        onGenerated={handleLetterGenerated}
-      />
     </div>
   );
 }

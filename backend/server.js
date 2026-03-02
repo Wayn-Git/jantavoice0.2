@@ -15,6 +15,7 @@ const complaintRoutes = require('./routes/complaintRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
 const govPortalRoutes = require('./routes/govPortalRoutes');
 const automationRoutes = require('./routes/automationRoutes');
+const chatbotRoutes = require('./routes/chatbotRoutes');
 
 const app = express();
 
@@ -55,6 +56,7 @@ app.use('/api/complaints', complaintRoutes);
 app.use('/api/notifications', notificationRoutes);
 app.use('/api/gov', govPortalRoutes);
 app.use('/api/automation', automationRoutes);
+app.use('/api/chatbot', chatbotRoutes);
 
 // 404
 app.use('*', (req, res) => {
@@ -76,13 +78,18 @@ app.listen(PORT, () => {
   `);
 });
 
-// Start background engines
+// Start background services
 const { startAutomationEngine } = require('./controllers/automationController');
 const { startGovCheckCron } = require('./controllers/govPortalController');
 
-if (process.env.AUTO_CHECK_ENABLED === 'true') {
-  startAutomationEngine();
-  startGovCheckCron();
-}
+startAutomationEngine();    // runs every 30 min
+startGovCheckCron();        // runs every 4 hours
+
+console.log('');
+console.log('🚀 Janta Voice Server Running');
+console.log('🤖 Automation Engine: Active');
+console.log('🏛️ Gov Portal Checker: Active');
+console.log('💬 Chatbot: Ready');
+console.log('');
 
 module.exports = app;

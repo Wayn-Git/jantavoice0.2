@@ -1,15 +1,17 @@
 const router = require('express').Router();
 const {
-    submitToGovPortal,
+    submitToPortal,
     checkTicketStatus,
     getMyGovTickets,
-    manualTrackTicket
+    manualTrack,
+    getAllGovTickets
 } = require('../controllers/govPortalController');
-const { protect } = require('../middleware/auth');
+const { protect, authorize } = require('../middleware/auth');
 
-router.post('/submit/:complaintId', protect, submitToGovPortal);
+router.post('/submit/:complaintId', protect, submitToPortal);
 router.get('/status/:ticketId', protect, checkTicketStatus);
 router.get('/my-tickets', protect, getMyGovTickets);
-router.post('/track-manual', protect, manualTrackTicket);
+router.post('/track-manual', protect, manualTrack);
+router.get('/admin/tickets', protect, authorize('admin'), getAllGovTickets);
 
 module.exports = router;

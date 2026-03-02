@@ -41,13 +41,14 @@ export default function ComplaintCard({ complaint, onLikeUpdate }) {
             <span className="bg-saffron-pale text-saffron-dark text-xs font-bold px-2 py-1 rounded-full">
               {icon} {complaint.category}
             </span>
-            {complaint.govTicket && <span className="bg-blue-100 text-blue-700 text-xs font-bold px-2 py-1 rounded-full" title="Gov Ticket Active">🏛️</span>}
-            {complaint.statusHistory?.some(h => h.source === 'automation' && h.details?.includes('Escalate')) && (
-              <span className="bg-orange-100 text-orange-700 text-[10px] font-bold px-2 py-1.5 rounded-full uppercase tracking-wider flex items-center gap-1">🤖 Auto-escalated</span>
+            {complaint.govTicket && <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full border border-purple-200" title="Gov Ticket Active">🏛️ GR#{complaint.govTicket.ticketId || complaint.govTicket.slice(-6)}</span>}
+            {complaint.formalLetter && <span className="bg-india-green-pale text-india-green-dark text-xs font-bold px-2 py-1 rounded-full border border-india-green/20" title="Formal Letter Ready">📄</span>}
+            {complaint.statusHistory?.some(h => h.source === 'automation') && (
+              <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider tooltip-wrap border border-blue-200" title="Auto-managed">🤖</span>
             )}
           </div>
-          {(complaint.likesCount > 20 || likesCount > 20) && (
-            <span className="bg-gradient-to-r from-saffron to-yellow-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">🔥 Trending</span>
+          {(complaint.likes?.length >= 10 || likesCount >= 10) && (
+            <span className="bg-red-100 text-red-600 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">🔥 Trending</span>
           )}
         </div>
 
@@ -70,7 +71,7 @@ export default function ComplaintCard({ complaint, onLikeUpdate }) {
             </div>
           </div>
           <div className="flex items-center gap-3 text-xs text-gray-400">
-            <button onClick={handleLike} className={`flex items-center gap-1 transition-colors ${liked ? 'text-red-500' : 'hover:text-red-400'}`}>
+            <button onClick={handleLike} className={`flex items-center gap-1 transition-colors ${liked ? 'text-saffron' : 'hover:text-saffron-dark'}`}>
               {liked ? <FaHeart /> : <FaRegHeart />} {likesCount}
             </button>
             <span className="flex items-center gap-1"><FaComment className="text-gray-300" /> {complaint.comments?.length || 0}</span>

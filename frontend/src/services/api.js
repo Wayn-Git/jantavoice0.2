@@ -41,6 +41,8 @@ export const complaintAPI = {
   delete: id => api.delete(`/complaints/${id}`),
   getStats: () => api.get('/complaints/stats'),
   aiCategorize: data => api.post('/complaints/ai-categorize', data),
+  extractDetails: data => api.post('/complaints/extract-details', data),
+  quickFile: data => api.post('/complaints/quick-file', data),
   transcribeAudio: formData => api.post('/complaints/transcribe', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
   generateLetter: id => api.post(`/complaints/${id}/generate-letter`, {}, { responseType: 'blob' }),
 };
@@ -49,12 +51,13 @@ export const govAPI = {
   submit: (complaintId) => api.post(`/gov/submit/${complaintId}`),
   checkStatus: (ticketId) => api.get(`/gov/status/${ticketId}`),
   getMyTickets: () => api.get('/gov/my-tickets'),
-  trackManual: (data) => api.post('/gov/track-manual', data),
+  checkGovStatus: (ticketId, portal) => api.post('/gov/check', { ticketId, portal }),
+  getMyGovTickets: () => api.get('/gov/my-tickets'),
+  getAllAdminGovTickets: () => api.get('/gov/admin/tickets'),
 };
 
 export const automationAPI = {
   getRules: () => api.get('/automation/rules'),
-  createRule: (data) => api.post('/automation/rules', data),
   toggleRule: (id) => api.put(`/automation/rules/${id}`),
   getLogs: () => api.get('/automation/logs'),
   runNow: () => api.post('/automation/run-now'),
@@ -65,5 +68,8 @@ export const notifAPI = {
   markRead: id => api.put(`/notifications/${id}/read`),
   markAllRead: () => api.put('/notifications/read-all'),
 };
+
+export const generateLetter = (complaintId) =>
+  api.get('/complaints/' + complaintId + '/generate-letter', { responseType: 'blob' });
 
 export default api;

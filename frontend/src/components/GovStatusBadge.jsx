@@ -3,13 +3,13 @@ import { FaClock, FaCheckCircle, FaTimesCircle, FaPaperPlane, FaSpinner, FaBuild
 export default function GovStatusBadge({ status }) {
     const getBadgeStyle = () => {
         const s = status?.toLowerCase() || '';
-        if (s.includes('submitted')) return 'bg-blue-100 text-blue-700 border-blue-200';
-        if (s.includes('process') || s.includes('pending')) return 'bg-amber-100 text-amber-700 border-amber-200';
-        if (s.includes('resolved') || s.includes('closed') || s.includes('disposed')) return 'bg-green-100 text-green-700 border-green-200';
-        if (s.includes('rejected')) return 'bg-red-100 text-red-700 border-red-200';
-        if (s.includes('ministry')) return 'bg-purple-100 text-purple-700 border-purple-200';
-        if (s.includes('action')) return 'bg-orange-100 text-orange-700 border-orange-200';
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+        if (s.includes('submitted')) return 'bg-gray-100 text-gray-800 border-gray-200';
+        if (s.includes('process') || s.includes('pending')) return 'bg-saffron-pale text-saffron-dark border-saffron/20';
+        if (s.includes('resolved') || s.includes('closed') || s.includes('disposed')) return 'bg-india-green-pale text-india-green-dark border-india-green/20';
+        if (s.includes('rejected')) return 'bg-saffron text-white border-saffron-dark';
+        if (s.includes('ministry')) return 'bg-gray-200 text-gray-800 border-gray-300';
+        if (s.includes('action')) return 'bg-saffron-pale text-saffron border-saffron/20';
+        return 'bg-gray-50 text-gray-500 border-gray-200';
     };
 
     const getIcon = () => {

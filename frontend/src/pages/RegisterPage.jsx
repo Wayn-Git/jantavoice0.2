@@ -18,7 +18,7 @@ export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
   const strength = getStrength(form.password);
-  const strengthColors = ['bg-red-400', 'bg-orange-400', 'bg-yellow-400', 'bg-india-green'];
+  const strengthColors = ['bg-gray-400', 'bg-saffron-pale', 'bg-saffron', 'bg-india-green'];
   const strengthLabels = ['Weak', 'Fair', 'Good', 'Strong'];
 
   const handleSubmit = async (e) => {

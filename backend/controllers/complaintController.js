@@ -7,6 +7,50 @@ const User = require('../models/User');
 const Notification = require('../models/Notification');
 const GovTicket = require('../models/GovTicket');
 const { groq, autoCategory, generateAdminNote } = require('../config/groq');
+const { portals } = require('../config/govPortals');
+const { triggerOnCreateRules } = require('./automationController');
+
+// Helper to handle auto-submission
+const handleAutoSubmit = async (complaint) => {
+  if (!complaint || !complaint.category || !complaint.location?.state) return;
+  const state = complaint.location.state;
+  const category = complaint.category;
+
+  let selectedPortal = null;
+  let portalKey = null;
+
+  for (const [key, portal] of Object.entries(portals)) {
+    if (portal.categories.includes(category) || portal.categories.includes('all')) {
+      if (portal.states.includes('all') || portal.states.includes(state)) {
+        selectedPortal = portal;
+        portalKey = key;
+        break;
+      }
+    }
+  }
+
+  if (selectedPortal) {
+    try {
+      const ticketId = `${portalKey}-${Math.random().toString().slice(2, 8)}`;
+      const govTicket = await GovTicket.create({
+        complaint: complaint._id,
+        portalName: selectedPortal.name,
+        ticketId: ticketId,
+        currentStatus: 'Submitted',
+        ticketUrl: selectedPortal.trackingUrl,
+        submittedAt: new Date(),
+        lastCheckedAt: new Date()
+      });
+      complaint.statusHistory.push({
+        status: 'Reported',
+        note: `Auto-submitted to ${selectedPortal.name}. Ticket: ${ticketId}`
+      });
+      await complaint.save();
+    } catch (e) {
+      console.error('Gov Portal Auto-Submit Error:', e.message);
+    }
+  }
+};
 
 // POST /api/complaints
 const createComplaint = async (req, res, next) => {
@@ -54,6 +98,15 @@ const createComplaint = async (req, res, next) => {
 
     // Increment user count
     await User.findByIdAndUpdate(req.user._id, { $inc: { complaintsCount: 1 } });
+
+    // Auto submission explicitly flagged
+    const autoSubmit = req.body.autoSubmit === 'true' || req.body.autoSubmit === true;
+    if (autoSubmit) {
+      await handleAutoSubmit(complaint);
+    }
+
+    // Trigger on_create rules
+    await triggerOnCreateRules(complaint);
 
     const populated = await Complaint.findById(complaint._id).populate('user', 'name avatar');
 
@@ -407,8 +460,22 @@ const transcribeVoice = async (req, res, next) => {
   }
 };
 
-// POST /api/complaints/:id/generate-letter
-const generateComplaintLetter = async (req, res, next) => {
+// Helper mapping
+const getCategoryDepartment = (category) => {
+  const map = {
+    'Roads': 'Ministry of Road Transport & Highways',
+    'Water': 'Ministry of Jal Shakti',
+    'Electricity': 'Ministry of Power',
+    'Sanitation': 'Ministry of Housing & Urban Affairs',
+    'Parks': 'Ministry of Environment, Forest & Climate Change',
+    'Safety': 'Ministry of Home Affairs',
+    'Noise': 'State Pollution Control Board'
+  };
+  return map[category] || 'State Grievance Cell';
+};
+
+// GET /api/complaints/:id/generate-letter
+const generateFormalLetter = async (req, res, next) => {
   try {
     const complaint = await Complaint.findById(req.params.id).populate('user');
     if (!complaint) return res.status(404).json({ success: false, message: 'Complaint not found.' });
@@ -420,9 +487,7 @@ const generateComplaintLetter = async (req, res, next) => {
     }
 
     const { title, description, category, location } = complaint;
-    const userName = req.body.userName || req.user.name;
-    const userEmail = req.body.userEmail || req.user.email;
-    const additionalDetails = req.body.additionalDetails || 'None';
+    const user = complaint.user;
 
     const systemPrompt = `You are an expert Indian government document writer. Generate a formal complaint letter in proper Indian government format. The letter must include:
 1. Proper salutation to the concerned government department
@@ -433,101 +498,230 @@ const generateComplaintLetter = async (req, res, next) => {
 6. Formal closing with complainant details
 7. CC line to relevant departments
 Use formal English style. Keep it under 400 words.
-Return ONLY a valid JSON object matching exactly this structure: {"letterText": "string", "subject": "string", "referenceNumber": "string", "department": "string", "ccList": "string"}`;
+Return ONLY a valid JSON object matching exactly this structure: {"letterText": "string"}`;
 
     const userPrompt = `Complaint Details:
 Title: ${title}
 Description: ${description}
 Category: ${category}
 Address: ${location.address}, ${location.city}, ${location.state}
-Complainant Name: ${userName}
-Complainant Email: ${userEmail}
-Additional Details (Previous actions): ${additionalDetails}`;
+Complainant Name: ${user.name}
+Complainant Email: ${user.email}`;
+
+    // if letter exists, we might just reuse it, but user prompt says "Call Groq to generate letter text (same prompt as in automation controller)"
+    // The prompt says: "Also save letterText and refNum to complaint in DB" so we generate it if needed.
+    // If it's already there, we could use complain.formalLetter. But let's follow instructions to generate or use existing.
+    let letterText = complaint.formalLetter;
+
+    if (!letterText || letterText.includes('Sample formal letter text.')) {
+      const chat = await groq.chat.completions.create({
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+        model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+        temperature: 0.2,
+        max_tokens: 1000,
+      });
+
+      let rawText = chat.choices[0]?.message?.content?.trim() || '';
+      try {
+        const jsonStart = rawText.indexOf('{');
+        const jsonEnd = rawText.lastIndexOf('}') + 1;
+        if (jsonStart !== -1 && jsonEnd !== 0) {
+          const parsed = JSON.parse(rawText.substring(jsonStart, jsonEnd));
+          letterText = parsed.letterText || rawText;
+        } else {
+          letterText = rawText;
+        }
+      } catch (e) {
+        letterText = rawText;
+      }
+    }
+
+    const refNum = complaint.referenceNumber || ('JV/' + new Date().getFullYear() + '/' + Math.floor(Math.random() * 90000 + 10000));
+
+    await Complaint.findByIdAndUpdate(complaint._id, {
+      formalLetter: letterText,
+      referenceNumber: refNum
+    });
+
+    const doc = new PDFDocument({ margin: 60 });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="complaint-${refNum.replace(/[\/\\]/g, '-')}.pdf"`);
+    doc.pipe(res);
+
+    // Header
+    doc.fontSize(8).fillColor('#999999').text('JANTA VOICE — CIVIC COMPLAINT PORTAL', { align: 'center' });
+    doc.moveDown(0.3);
+
+    // Tricolor line (draw 3 colored rectangles)
+    doc.rect(60, doc.y, 160, 3).fill('#FF9933');
+    doc.rect(220, doc.y - 3, 160, 3).fill('#DDDDDD');
+    doc.rect(380, doc.y - 3, 155, 3).fill('#138808');
+    doc.moveDown(1.2);
+
+    // Reference and Date
+    doc.fontSize(9).fillColor('#555555')
+      .text('Ref No: ' + refNum, { align: 'right' });
+    doc.text('Date: ' + new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'long', year: 'numeric' }), { align: 'right' });
+    doc.moveDown(1);
+
+    // To section
+    doc.fontSize(11).fillColor('#000000').text('To,');
+    doc.text('The Concerned Authority,');
+    doc.text(getCategoryDepartment(complaint.category));
+    doc.text('Government of India / ' + (complaint.location?.state || 'India'));
+    doc.moveDown(1);
+
+    // Subject
+    doc.fontSize(11).font('Helvetica-Bold')
+      .text('Subject: Formal Complaint Regarding ' + complaint.category + ' Issue — Urgent Action Required');
+    doc.font('Helvetica').moveDown(1);
+
+    // Body - use the AI generated text, split into paragraphs
+    const paragraphs = letterText.split('\n\n').filter(p => p.trim());
+    paragraphs.forEach(para => {
+      if (para.trim()) {
+        doc.fontSize(11).fillColor('#1A1A1A').text(para.trim(), { align: 'justify', lineGap: 4 });
+        doc.moveDown(0.8);
+      }
+    });
+
+    // Closing
+    doc.moveDown(1);
+    doc.text('Yours faithfully,');
+    doc.moveDown(0.5);
+    doc.font('Helvetica-Bold').text(user.name || 'Citizen');
+    doc.font('Helvetica').text(user.email || '');
+    doc.text(complaint.location?.city || '');
+    doc.text('Filed via: Janta Voice | Ref: ' + refNum);
+
+    // Footer
+    doc.fontSize(8).fillColor('#999999')
+      .text('This complaint was filed via Janta Voice civic platform. For tracking visit: jantavoice.com', 60, 740, { align: 'center' });
+
+    doc.end();
+
+  } catch (err) {
+    next(err);
+  }
+};
+
+// POST /api/complaints/extract-details
+const extractDetails = async (req, res, next) => {
+  try {
+    const { text } = req.body;
+    if (!text) return res.status(400).json({ success: false, message: 'Text is required.' });
+
+    const systemPrompt = `Extract complaint details from this text. Return JSON only with EXACT keys: { "title": "string", "description": "string", "category": "string", "priority": "string", "city": "string", "state": "string", "tags": ["string"] }.
+Rules for fields:
+- category MUST be one of: Roads, Water, Electricity, Sanitation, Parks, Safety, Noise, Other.
+- priority MUST be one of: Low, Medium, High, Critical.
+- Expand the description to be a polite, detailed 2-3 sentence explanation based on the text.
+- Clean up the title to be formal.
+Return ONLY valid JSON without markdown wrapping.`;
 
     const chat = await groq.chat.completions.create({
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
+        { role: 'user', content: text },
       ],
       model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
       temperature: 0.2,
-      max_tokens: 1000,
+      max_tokens: 500,
     });
 
-    let generatedData;
-    let rawText = '';
+    let rawText = chat.choices[0]?.message?.content?.trim() || '{}';
+    if (rawText.startsWith('\`\`\`json')) {
+      rawText = rawText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
+    }
+
+    const result = JSON.parse(rawText);
+    res.json({ success: true, result });
+  } catch (err) {
+    console.error('Extract Details Error:', err);
+    res.status(500).json({ success: false, message: 'Failed to extract details.', fallback: { title: req.body.text.substring(0, 50), description: req.body.text, category: 'Other', priority: 'Medium' } });
+  }
+};
+
+// POST /api/complaints/quick-file
+const quickFile = async (req, res, next) => {
+  try {
+    const { text, location, autoSubmit } = req.body;
+    if (!text) return res.status(400).json({ success: false, message: 'Text is required.' });
+
+    const systemPrompt = `Extract complaint details from this text. Return JSON only with EXACT keys: { "title": "string", "description": "string", "category": "string", "priority": "string", "city": "string", "state": "string", "tags": ["string"] }.
+Rules for fields:
+- category MUST be one of: Roads, Water, Electricity, Sanitation, Parks, Safety, Noise, Other.
+- priority MUST be one of: Low, Medium, High, Critical.
+- Expand the description to be a polite, detailed 2-3 sentence explanation based on the short text.
+- Clean up the title to be formal.
+Return ONLY valid JSON without markdown wrapping.`;
+
+    const chat = await groq.chat.completions.create({
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: `Text: ${text}\nLocation Context (if any): ${JSON.stringify(location || {})}` },
+      ],
+      model: process.env.GROQ_MODEL || 'llama-3.1-8b-instant',
+      temperature: 0.2,
+      max_tokens: 500,
+    });
+
+    let rawText = chat.choices[0]?.message?.content?.trim() || '{}';
+    if (rawText.startsWith('\`\`\`json')) {
+      rawText = rawText.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '').trim();
+    }
+
+    let result;
     try {
-      rawText = chat.choices[0]?.message?.content?.trim();
-      const jsonStart = rawText.indexOf('{');
-      const jsonEnd = rawText.lastIndexOf('}') + 1;
-
-      if (jsonStart === -1 || jsonEnd === 0) {
-        throw new Error('No JSON brackets found in AI response');
-      }
-
-      const jsonText = rawText.substring(jsonStart, jsonEnd);
-      generatedData = JSON.parse(jsonText);
+      result = JSON.parse(rawText);
     } catch (e) {
-      console.error('AI Letter Gen Error:', e.message);
-      console.error('Raw AI Output:', rawText);
-      return res.status(500).json({ success: false, message: 'Failed to generate proper letter format via AI.', rawError: e.message, rawText });
+      result = { title: text.substring(0, 50), description: text, category: 'Other', priority: 'Medium', city: '', state: '', tags: [] };
     }
 
-    const { letterText, subject, referenceNumber, department, ccList } = generatedData;
+    const { title, description, category, priority, city, state, tags } = result;
 
-    complaint.formalLetter = letterText || 'Sample formal letter text.';
-    complaint.referenceNumber = referenceNumber || `JV/AUTO/${Math.random().toString().slice(2, 8)}`;
-    complaint.letterGeneratedAt = new Date();
-    await complaint.save();
+    const loc = location || {};
+    const address = loc.address || city || state || 'Not specified';
+    const finalCity = loc.city || city || '';
+    const finalState = loc.state || state || '';
 
-    const safeRef = (complaint.referenceNumber).replace(/[\/\\]/g, '-');
-    const docPath = path.join(os.tmpdir(), `complaint-${complaint._id}-${Date.now()}.pdf`);
+    const complaint = await Complaint.create({
+      title: title || 'Quick Complaint',
+      description: description || text,
+      category: category || 'Other',
+      images: [],
+      location: { address, city: finalCity, state: finalState, pincode: loc.pincode || '' },
+      priority: priority || 'Medium',
+      isAnonymous: false,
+      tags: tags || [],
+      user: req.user._id,
+      statusHistory: [{ status: 'Reported', note: 'Complaint quickly filed via AI.' }],
+    });
 
-    const doc = new PDFDocument({ margin: 50 });
-    const writeStream = fs.createWriteStream(docPath);
-    doc.pipe(writeStream);
+    await User.findByIdAndUpdate(req.user._id, { $inc: { complaintsCount: 1 } });
 
-    doc.font('Helvetica-Bold').fontSize(16).text('JANTA VOICE COMPLAINT PORTAL', { align: 'center' });
-    doc.moveDown(0.2);
-
-    const startX = 50;
-    const lineY = doc.y;
-    const lineWidth = doc.page.width - 100;
-    doc.rect(startX, lineY, lineWidth, 2).fill('#FF9933');
-    doc.rect(startX, lineY + 2, lineWidth, 2).fill('#138808');
-    doc.moveDown(1.5);
-    doc.fillColor('black');
-
-    doc.font('Helvetica-Bold').fontSize(12).text(`Ref: ${referenceNumber}`, { continued: true });
-    const today = new Date().toLocaleDateString('en-IN');
-    doc.text(`Date: ${today}`, { align: 'right' });
-    doc.moveDown();
-
-    doc.font('Helvetica-Bold').text(`To,`);
-    doc.text(department || 'Concerned Authority');
-    doc.moveDown();
-
-    doc.font('Helvetica-Bold').text(`Subject: ${subject}`);
-    doc.moveDown();
-
-    doc.font('Helvetica').text(letterText, { align: 'justify' });
-    doc.moveDown(2);
-
-    if (ccList) {
-      doc.font('Helvetica-Bold').text('CC:');
-      doc.font('Helvetica').text(ccList);
+    if (autoSubmit) {
+      await handleAutoSubmit(complaint);
     }
 
-    doc.moveDown(3);
-    doc.font('Helvetica-Oblique').fontSize(10).fillColor('gray').text(`Filed via Janta Voice | jantavoice.com | Ref: ${referenceNumber || `JV/AUTO/${Math.random().toString().slice(2, 8)}`}`, { align: 'center', baseline: 'bottom' });
+    // Trigger on_create rules
+    await triggerOnCreateRules(complaint);
 
-    doc.end();
+    const populated = await Complaint.findById(complaint._id).populate('user', 'name avatar').lean();
 
-    writeStream.on('finish', () => {
-      res.download(docPath, `${safeRef}.pdf`, (err) => {
-        if (err) console.error(err);
-        setTimeout(() => { if (fs.existsSync(docPath)) fs.unlinkSync(docPath); }, 60000);
-      });
+    // Attach gov ticket if created
+    if (autoSubmit) {
+      const govTicket = await GovTicket.findOne({ complaint: complaint._id });
+      if (govTicket) populated.govTicket = govTicket;
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Complaint filed successfully via Quick File.',
+      complaint: populated,
     });
 
   } catch (err) {
@@ -547,5 +741,7 @@ module.exports = {
   deleteComplaint,
   aiCategorize,
   transcribeVoice,
-  generateComplaintLetter,
+  generateFormalLetter,
+  quickFile,
+  extractDetails,
 };

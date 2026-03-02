@@ -192,18 +192,18 @@ export default function VoiceRecorder({ onUseComplaint }) {
 
             {!audioUrl && (
                 <div className="flex flex-col items-center w-full">
-                    {error && <div className="text-red-500 text-sm mb-4 bg-red-50 p-3 rounded-xl w-full text-center">{error}</div>}
+                    {error && <div className="text-white text-sm mb-4 bg-saffron-dark p-3 rounded-xl w-full text-center">{error}</div>}
 
                     <div className="relative mb-6">
                         <button
                             onClick={recording ? stopRecording : startRecording}
                             className={`w-20 h-20 rounded-full flex items-center justify-center text-3xl transition-all shadow-md z-10 relative
-                ${recording ? 'bg-red-50 text-red-500 border-2 border-red-500' : 'bg-gray-100 hover:bg-gray-200 text-gray-500'}`}
+                ${recording ? 'bg-saffron text-white border-2 border-saffron-dark' : 'bg-gray-100 hover:bg-gray-200 text-gray-500'}`}
                         >
                             {recording ? '⏹️' : '🎙️'}
                         </button>
                         {recording && (
-                            <div className="absolute inset-0 rounded-full animate-ping bg-red-400 opacity-20" style={{ animationDuration: '1.5s' }} />
+                            <div className="absolute inset-0 rounded-full animate-ping bg-saffron-dark opacity-20" style={{ animationDuration: '1.5s' }} />
                         )}
                     </div>
 
@@ -239,7 +239,7 @@ export default function VoiceRecorder({ onUseComplaint }) {
                             {loading ? '⏳ AI is transcribing...' : '🤖 Transcribe with AI'}
                         </button>
                     </div>
-                    {error && <div className="text-red-500 text-sm mt-4">{error}</div>}
+                    {error && <div className="text-saffron-dark text-sm mt-4">{error}</div>}
                 </div>
             )}
 

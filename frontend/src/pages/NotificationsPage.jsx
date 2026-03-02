@@ -1,68 +1,85 @@
-import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { notifAPI } from '../services/api';
+import React, { useState } from 'react';
+import { useNotification } from '../context/NotificationContext';
+import { useNavigate } from 'react-router-dom';
+import { FaBell, FaCheckDouble, FaRobot, FaLandmark, FaInfoCircle } from 'react-icons/fa';
 import { timeAgo } from '../utils/helpers';
-import { useAuth } from '../context/AuthContext';
-import toast from 'react-hot-toast';
 
 export default function NotificationsPage() {
-  const { isAuthenticated } = useAuth();
-  const [notifs, setNotifs] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { notifications, markAllRead, markAsRead } = useNotification();
+  const [filter, setFilter] = useState('All');
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    if (!isAuthenticated) return;
-    const fetch = async () => {
-      try {
-        const { data } = await notifAPI.getAll();
-        setNotifs(data.notifications);
-      } catch { } finally { setLoading(false); }
-    };
-    fetch();
-  }, [isAuthenticated]);
+  const filtered = notifications.filter(n => {
+    if (filter === 'Unread') return !n.isRead;
+    if (filter === 'Automation') return n.type === 'automation_rule';
+    if (filter === 'Gov Updates') return n.type === 'gov_update';
+    return true;
+  });
 
-  const markAllRead = async () => {
-    await notifAPI.markAllRead();
-    setNotifs(prev => prev.map(n => ({ ...n, isRead: true })));
-    toast.success('All marked as read');
+  const getIcon = (type) => {
+    if (type === 'automation_rule') return <FaRobot className="text-blue-500" />;
+    if (type === 'gov_update') return <FaLandmark className="text-purple-500" />;
+    return <FaInfoCircle className="text-gray-400" />;
   };
 
-  const TYPE_ICONS = { status_update: '📋', like: '❤️', comment: '💬', admin_note: '🔔', welcome: '🎉' };
-
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-6">
-        <div className="flex items-center justify-between mb-5">
-          <h1 className="font-heading font-bold text-3xl"><span className="text-saffron">Notifications</span></h1>
-          {notifs.some(n => !n.isRead) && (
-            <button onClick={markAllRead} className="text-sm text-saffron-dark font-bold hover:underline">Mark all read</button>
-          )}
+    <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-heading font-bold text-gray-800 flex items-center gap-3">
+            <FaBell className="text-saffron" />
+            Notifications
+          </h1>
+          <p className="text-gray-500">Stay updated on your complaint statuses and government portal actions.</p>
         </div>
-        {loading ? (
-          <div className="flex justify-center py-12"><div className="animate-spin w-7 h-7 border-4 border-saffron border-t-transparent rounded-full" /></div>
-        ) : notifs.length === 0 ? (
-          <div className="text-center py-16 text-gray-400">
-            <div className="text-5xl mb-3 opacity-30">🔔</div>
-            <p>No notifications yet</p>
+        {notifications.some(n => !n.isRead) && (
+          <button onClick={markAllRead} className="btn-secondary whitespace-nowrap flex items-center gap-2">
+            <FaCheckDouble /> Mark All Read
+          </button>
+        )}
+      </div>
+
+      {/* Filters */}
+      <div className="flex gap-2 overflow-x-auto pb-2 border-b border-gray-200">
+        {['All', 'Unread', 'Automation', 'Gov Updates'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFilter(f)}
+            className={`px-4 py-2 font-bold text-sm rounded-t-lg transition-colors border-b-2 whitespace-nowrap ${filter === f ? 'border-saffron text-saffron bg-white/50' : 'border-transparent text-gray-500 hover:text-gray-800'}`}
+          >
+            {f}
+          </button>
+        ))}
+      </div>
+
+      {/* List */}
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden min-h-[400px]">
+        {filtered.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-64 text-gray-400 gap-4">
+            <div className="text-6xl opacity-20">📭</div>
+            <p className="font-bold text-lg">No notifications found</p>
           </div>
         ) : (
-          <div className="space-y-2">
-            {notifs.map(n => (
-              <div key={n._id} className={`bg-white border rounded-xl p-4 flex gap-3 items-start transition-colors ${!n.isRead ? 'border-saffron/30 bg-saffron-pale/20' : 'border-gray-200'}`}>
-                <span className="text-xl flex-shrink-0">{n.type === 'system' ? '🤖' : (TYPE_ICONS[n.type] || '🔔')}</span>
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    {n.type === 'system' && <span className="bg-gray-800 text-white text-[9px] font-bold px-1.5 py-0.5 rounded uppercase tracking-wider">Auto</span>}
-                    <p className={`text-sm ${!n.isRead ? 'font-bold text-gray-800' : 'text-gray-600'}`}>{n.message}</p>
-                  </div>
-                  {n.complaint && (
-                    <Link to={`/complaint/${n.complaint._id || n.complaint}`} className="text-xs text-saffron-dark font-bold hover:underline mt-1 block">
-                      View Complaint →
-                    </Link>
-                  )}
-                  <p className="text-xs text-gray-400 mt-1">{timeAgo(n.createdAt)}</p>
+          <div className="divide-y divide-gray-100">
+            {filtered.map(n => (
+              <div
+                key={n._id}
+                onClick={() => {
+                  if (!n.isRead) markAsRead(n._id);
+                  if (n.complaint) navigate(`/complaint/${n.complaint}`);
+                }}
+                className={`p-4 hover:bg-gray-50 transition-colors cursor-pointer flex gap-4 ${!n.isRead ? 'bg-saffron-pale/20' : ''}`}
+              >
+                <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${!n.isRead ? 'bg-white shadow-sm border border-gray-100' : 'bg-gray-100'}`}>
+                  {getIcon(n.type)}
                 </div>
-                {!n.isRead && <div className="w-2 h-2 rounded-full bg-saffron flex-shrink-0 mt-1.5" />}
+                <div className="flex-1 min-w-0">
+                  <p className={`text-sm ${!n.isRead ? 'font-bold text-gray-900' : 'text-gray-700'}`}>{n.message}</p>
+                  <div className="flex items-center gap-3 mt-1 text-xs font-semibold text-gray-400">
+                    <span>{timeAgo(n.createdAt)}</span>
+                    {!n.isRead && <span className="text-saffron">• New</span>}
+                  </div>
+                </div>
               </div>
             ))}
           </div>
