@@ -43,3 +43,60 @@
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
 ::-webkit-scrollbar-thumb { background: #FF9933; border-radius: 3px; }
+
+/* GLOBAL ANIMATED BACKGROUND */
+body {
+  background: #FFFDF7;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Animated gradient mesh background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background: 
+    radial-gradient(ellipse at 10% 20%, rgba(255,153,51,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 90% 10%, rgba(19,136,8,0.06) 0%, transparent 45%),
+    radial-gradient(ellipse at 50% 80%, rgba(255,153,51,0.05) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 60%, rgba(19,136,8,0.04) 0%, transparent 40%);
+  animation: meshShift 12s ease-in-out infinite alternate;
+  pointer-events: none;
+}
+
+@keyframes meshShift {
+  0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 80% 60%; }
+  50%  { background-position: 20% 30%, 80% 20%, 30% 70%, 60% 40%; }
+  100% { background-position: 10% 60%, 90% 50%, 60% 20%, 40% 80%; }
+}
+
+/* Floating particles layer */
+.bg-particles {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0;
+  animation: particleFloat linear infinite;
+}
+
+@keyframes particleFloat {
+  0%   { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+  5%   { opacity: 0.6; }
+  95%  { opacity: 0.4; }
+  100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+}
+
+/* All content must be above bg */
+nav, .sidebar, .main, .chatbot-fab, .chatbot-window {
+  position: relative;
+  z-index: 1;
+}
