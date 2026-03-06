@@ -1,8 +1,4 @@
-const express = require('express');
-const router = express.Router();
-const { chat } = require('../controllers/chatbotController');
-
-// Open route for chatbot
-router.post('/chat', chat);
-
+const router = require('express').Router();
+const ctrl = require('../controllers/chatbotController');
+router.post('/chat', ctrl.chat);
 module.exports = router;

@@ -57,6 +57,8 @@ app.use('/api/notifications', notificationRoutes);
 app.use('/api/gov', govPortalRoutes);
 app.use('/api/automation', automationRoutes);
 app.use('/api/chatbot', chatbotRoutes);
+app.use('/api/calls', require('./routes/callRoutes'));
+app.use('/api/aqi', require('./routes/aqiRoutes'));
 
 // 404
 app.use('*', (req, res) => {
