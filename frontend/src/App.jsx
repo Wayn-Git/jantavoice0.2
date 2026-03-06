@@ -5,6 +5,7 @@ import { NotificationProvider } from './context/NotificationContext';
 import AnimatedBackground from './components/AnimatedBackground';
 import Navbar from './components/Navbar';
 
+import HomePage from './pages/HomePage';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -20,6 +21,8 @@ import LettersPage from './pages/LettersPage';
 
 import Sidebar from './components/Sidebar';
 import ChatBot from './components/ChatBot';
+import AQIWidget from './components/AQIWidget';
+import VoiceFAB from './components/VoiceFAB';
 
 const ProtectedRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
@@ -63,7 +66,8 @@ function AppContent() {
         {/* Main Content Area */}
         <main className={`flex-1 w-full p-4 lg:p-6 min-h-[calc(100vh-60px)]`}>
           <Routes>
-            <Route path="/" element={<LandingPage />} />
+            <Route path="/" element={<HomePage />} />
+            <Route path="/landing" element={<LandingPage />} />
             <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
             <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
             <Route path="/feed" element={<FeedPage />} />
@@ -76,7 +80,7 @@ function AppContent() {
             <Route path="/automation-admin" element={<AdminRoute><AutomationAdminPage /></AdminRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
             <Route path="*" element={
-              <div className="pt-20 min-h-screen bg-gray-50 flex flex-col items-center justify-center text-center px-4">
+              <div className="pt-20 min-h-screen flex flex-col items-center justify-center text-center px-4">
                 <div className="text-7xl opacity-30 mb-4">🗺️</div>
                 <h2 className="font-heading font-bold text-3xl text-gray-600 mb-2">Page Not Found</h2>
                 <p className="text-gray-400 mb-5">The page you're looking for doesn't exist.</p>
@@ -87,8 +91,10 @@ function AppContent() {
         </main>
       </div>
 
-      {/* Global ChatBot Widget */}
+      {/* Global Widgets */}
       <ChatBot />
+      <AQIWidget />
+      <VoiceFAB />
     </div>
   );
 }
