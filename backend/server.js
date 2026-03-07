@@ -68,22 +68,6 @@ app.use('*', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`
-  ╔═══════════════════════════════════════╗
-  ║   🗣️  JANTA VOICE BACKEND RUNNING    ║
-  ║   http://localhost:${PORT}              ║
-  ║   Environment: ${process.env.NODE_ENV || 'development'}           ║
-  ║   Groq AI: ${process.env.GROQ_API_KEY ? '✅ Connected' : '❌ Missing'}             ║
-  ╚═══════════════════════════════════════╝
-  `);
-});
-
-// Start background services
-// Gov Portal routes
-app.use('/api/gov', require('./routes/govPortalRoutes'));
-
 // Start background services
 const { startAutomationEngine } = require('./controllers/automationController');
 const { startGovCheckCron } = require('./controllers/govPortalController');
@@ -96,11 +80,18 @@ if (process.env.AUTO_CHECK_ENABLED === 'true') {
   startEscalationChecker();
 }
 
-console.log('');
-console.log('🚀 Janta Voice Server Running');
-console.log('🤖 Automation Engine: Active');
-console.log('🏛️ Gov Portal Checker: Active');
-console.log('💬 Chatbot: Ready');
-console.log('');
+console.log('🚀 Janta Voice Background Services Configured');
+
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => {
+  console.log(`
+  ╔═══════════════════════════════════════╗
+  ║   🗣️  JANTA VOICE BACKEND RUNNING    ║
+  ║   http://localhost:${PORT}              ║
+  ║   Environment: ${process.env.NODE_ENV || 'development'}           ║
+  ║   Groq AI: ${process.env.GROQ_API_KEY ? '✅ Connected' : '❌ Missing'}             ║
+  ╚═══════════════════════════════════════╝
+  `);
+});
 
 module.exports = app;

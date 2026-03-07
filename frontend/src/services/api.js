@@ -50,8 +50,10 @@ export const complaintAPI = {
 export const govAPI = {
   submit: (complaintId) => api.post(`/gov/submit/${complaintId}`),
   checkStatus: (ticketId) => api.get(`/gov/status/${ticketId}`),
+  check: (ticketId) => api.get(`/gov/status/${ticketId}`),
   getMyTickets: () => api.get('/gov/my-tickets'),
   checkGovStatus: (ticketId, portal) => api.post('/gov/check', { ticketId, portal }),
+  trackManual: d => api.post('/gov/track-manual', d),
   getMyGovTickets: () => api.get('/gov/my-tickets'),
   getAllAdminGovTickets: () => api.get('/gov/admin/tickets'),
 };
