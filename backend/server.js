@@ -1,4 +1,7 @@
 require('dotenv').config();
+const { checkAPIKeys } = require('./utils/apiKeyChecker');
+checkAPIKeys();
+
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -44,6 +47,7 @@ app.use(general);
 
 // Static uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads/audio', express.static(path.join(__dirname, 'uploads/audio')));
 
 // Health check
 app.get('/health', (req, res) => {
@@ -68,30 +72,52 @@ app.use('*', (req, res) => {
 // Error handler
 app.use(errorHandler);
 
-// Start background services
-const { startAutomationEngine } = require('./controllers/automationController');
-const { startGovCheckCron } = require('./controllers/govPortalController');
-const { startEscalationChecker } = require('./services/escalationService');
+const PORT = process.env.PORT || 5000;
 
-startAutomationEngine();    // runs every 30 min
+async function startServer() {
+  // Start ngrok FIRST (so PUBLIC_URL is ready before anything else)
+  const { startNgrok } = require('./services/ngrokService');
+  await startNgrok(PORT);
 
-if (process.env.AUTO_CHECK_ENABLED === 'true') {
-  startGovCheckCron();
-  startEscalationChecker();
+  app.listen(PORT, () => {
+    // Serve uploaded audio files
+    app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+    // Check API keys
+    try {
+      const { checkAPIKeys } = require('./utils/apiKeyChecker');
+      checkAPIKeys();
+    } catch (e) { /* skip if not found */ }
+
+    // Start background services
+    try {
+      if (process.env.AUTO_CHECK_ENABLED === 'true') {
+        const { startAutomationEngine } = require('./controllers/automationController');
+        const { startGovCheckCron } = require('./controllers/govPortalController');
+        const { startEscalationChecker } = require('./services/escalationService');
+        const { startStatusChecker } = require('./jobs/statusChecker');
+        startAutomationEngine();
+        startGovCheckCron();
+        startEscalationChecker();
+        startStatusChecker();
+      }
+    } catch (e) { console.error('Background services error:', e.message); }
+
+    const ngrokUrl = process.env.PUBLIC_URL || 'http://localhost:' + PORT;
+
+    console.log('\n╔══════════════════════════════════════════╗');
+    console.log('║   🇮🇳  JANTA VOICE SERVER v3.0            ║');
+    console.log('╠══════════════════════════════════════════╣');
+    console.log(`║  🚀 Local:   http://localhost:${PORT}        ║`);
+    console.log(`║  🚇 Public:  ${ngrokUrl.substring(0, 38)}  ║`);
+    console.log(`║  📞 Twilio webhook ready at /api/calls   ║`);
+    console.log('╚══════════════════════════════════════════╝\n');
+  });
 }
 
-console.log('🚀 Janta Voice Background Services Configured');
-
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`
-  ╔═══════════════════════════════════════╗
-  ║   🗣️  JANTA VOICE BACKEND RUNNING    ║
-  ║   http://localhost:${PORT}              ║
-  ║   Environment: ${process.env.NODE_ENV || 'development'}           ║
-  ║   Groq AI: ${process.env.GROQ_API_KEY ? '✅ Connected' : '❌ Missing'}             ║
-  ╚═══════════════════════════════════════╝
-  `);
+startServer().catch(err => {
+  console.error('Server startup failed:', err.message);
+  process.exit(1);
 });
 
 module.exports = app;

@@ -76,12 +76,21 @@ export const chatbotAPI = {
 };
 
 export const aqiAPI = {
-  get: (lat, lon) => api.get('/aqi', { params: { lat, lon } }),
+  getByCoords: (lat, lon) => api.get('/aqi', { params: { lat, lon } }),
+  getByCity: (name) => api.get('/aqi/city', { params: { name } }),
+  getCities: () => api.get('/aqi/cities'),
+  getForecast: (lat, lon) => api.get('/aqi/forecast', { params: { lat, lon } }),
 };
 
 export const callAPI = {
-  initiate: id => api.post('/calls/' + id + '/initiate'),
-  getLog: id => api.get('/calls/' + id),
+  requestPermission: (complaintId) =>
+    api.post('/calls/' + complaintId + '/request-permission'),
+  confirmCall: (data) =>
+    api.post('/calls/confirm-call', data),
+  getLog: (callLogId) =>
+    api.get('/calls/' + callLogId),
+  getAllLogs: () =>
+    api.get('/calls'),
 };
 
 export const generateLetter = (complaintId) =>

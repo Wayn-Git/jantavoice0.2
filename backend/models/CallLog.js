@@ -8,12 +8,24 @@ const callLogSchema = new mongoose.Schema({
     transcript: { type: String },        // conversation transcript
     status: {
         type: String,
-        enum: ['Script Generated', 'Calling', 'Answered', 'No Answer', 'Completed', 'Failed'],
-        default: 'Script Generated'
+        enum: ['Awaiting Permission', 'Script Generated', 'Calling', 'Answered', 'In Progress', 'No Answer', 'Completed', 'Transcribed', 'Failed', 'Ringing'],
+        default: 'Awaiting Permission'
     },
     duration: { type: Number, default: 0 },  // seconds
     twilioCallSid: { type: String },        // for future Twilio integration
+    officerPhone: { type: String },
+    calledAt: { type: Date },
+    completedAt: { type: Date },
     recordingUrl: { type: String },
+    transcript: { type: String },
+    fullTranscript: { type: String },
+    summary: { type: String },
+    userPermission: { type: Boolean, default: false },
+    conversationLog: [{
+        speaker: { type: String, enum: ['AI', 'OFFICER'] },
+        text: { type: String },
+        timestamp: { type: Date, default: Date.now }
+    }],
     createdAt: { type: Date, default: Date.now }
 });
 module.exports = mongoose.model('CallLog', callLogSchema);

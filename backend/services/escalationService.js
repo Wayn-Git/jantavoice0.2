@@ -24,7 +24,41 @@ async function runEscalations() {
         } else if (days >= ESCALATION_DAYS.level2 && c.escalationLevel < 2) {
             c.escalationLevel = 2;
             c.statusHistory.push({ status: 'In Progress', changedAt: now, note: 'Escalated to higher authority after 5 days', isAutomated: true });
-            await Notification.create({ user: c.user._id, complaint: c._id, type: 'escalation', message: `📈 Escalated to higher authority: "${c.title}"` });
+
+            // Trigger follow-up AI call on Day 5
+            try {
+                const { callScript } = require('./groqService');
+                const { placeCall } = require('./twilioService');
+                const CallLog = require('../models/CallLog');
+
+                const script = await callScript(c);
+                const log = await CallLog.create({
+                    complaint: c._id,
+                    targetDepartment: c.department || c.category,
+                    script,
+                    status: 'Calling',
+                    conversationLog: []
+                });
+
+                if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID !== 'your_twilio_account_sid_here') {
+                    const call = await placeCall(
+                        process.env.TEST_OFFICER_PHONE || process.env.TWILIO_PHONE_NUMBER,
+                        c._id,
+                        log._id
+                    );
+                    await CallLog.findByIdAndUpdate(log._id, { twilioCallSid: call.sid });
+                }
+
+                await Notification.create({
+                    user: c.user._id,
+                    complaint: c._id,
+                    type: 'escalation',
+                    message: `📞 Follow-up AI call placed to ${c.department || c.category} (Day 5 escalation).`
+                });
+            } catch (callErr) {
+                console.error('Escalation call failed:', callErr.message);
+            }
+
             acted = true;
         } else if (days >= ESCALATION_DAYS.level1 && c.escalationLevel < 1) {
             c.escalationLevel = 1;

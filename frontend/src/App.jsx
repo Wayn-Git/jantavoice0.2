@@ -18,6 +18,7 @@ import AdminPage from './pages/AdminPage';
 import AutomationAdminPage from './pages/AutomationAdminPage';
 import NotificationsPage from './pages/NotificationsPage';
 import LettersPage from './pages/LettersPage';
+import AQIMonitorPage from './pages/AQIMonitorPage';
 
 import Sidebar from './components/Sidebar';
 import ChatBot from './components/ChatBot';
@@ -79,6 +80,7 @@ function AppContent() {
             <Route path="/letters" element={<ProtectedRoute><LettersPage /></ProtectedRoute>} />
             <Route path="/automation-admin" element={<AdminRoute><AutomationAdminPage /></AdminRoute>} />
             <Route path="/admin" element={<AdminRoute><AdminPage /></AdminRoute>} />
+            <Route path="/aqi-monitor" element={<AQIMonitorPage />} />
             <Route path="*" element={
               <div className="pt-20 min-h-screen flex flex-col items-center justify-center text-center px-4">
                 <div className="text-7xl opacity-30 mb-4">🗺️</div>

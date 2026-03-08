@@ -4,6 +4,8 @@ import { complaintAPI, govAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import StatusTimeline from '../components/StatusTimeline';
 import GovStatusBadge from '../components/GovStatusBadge';
+import CallPermissionModal from '../components/CallPermissionModal';
+import CallTranscriptViewer from '../components/CallTranscriptViewer';
 import { CATEGORY_ICONS, STATUS_COLORS, timeAgo, formatDate, getInitials } from '../utils/helpers';
 import { FaHeart, FaRegHeart, FaArrowLeft, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
 import { MdCall } from 'react-icons/md';
@@ -22,8 +24,8 @@ export default function ComplaintDetailPage() {
   const [imgIdx, setImgIdx] = useState(0);
   const [downloadingLetter, setDownloadingLetter] = useState(false);
   const [showCallModal, setShowCallModal] = useState(false);
-  const [callScript, setCallScript] = useState('');
-  const [calling, setCalling] = useState(false);
+  const [callLogId, setCallLogId] = useState(null);
+  const [showTranscript, setShowTranscript] = useState(false);
 
   useEffect(() => {
     const fetch = async () => {
@@ -32,6 +34,7 @@ export default function ComplaintDetailPage() {
         setComplaint(data.complaint);
         setLiked(data.complaint.isLiked);
         setLikesCount(data.complaint.likesCount);
+        if (data.complaint.callLogId) setCallLogId(data.complaint.callLogId);
       } catch { toast.error('Complaint not found'); navigate('/feed'); }
       finally { setLoading(false); }
     };
@@ -305,6 +308,26 @@ export default function ComplaintDetailPage() {
                       </button>
                     )}
                   </div>
+
+                  <div className="pt-2 border-t border-gray-700 mt-2 space-y-2">
+                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 mt-1">📞 Automated Calling</div>
+
+                    {!complaint.callLogId && (
+                      <button
+                        onClick={() => setShowCallModal(true)}
+                        style={{ display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '.5rem', padding: '8px 16px', background: 'linear-gradient(135deg,#138808,#0A5C04)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '800', fontFamily: 'Nunito,sans-serif', fontSize: '.8rem' }}>
+                        📞 Call Department via AI
+                      </button>
+                    )}
+
+                    {complaint.callLogId && (
+                      <button onClick={() => { setCallLogId(complaint.callLogId); setShowTranscript(true); }}
+                        style={{ display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '.5rem', padding: '8px 16px', border: '1px solid #138808', color: '#138808', background: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontFamily: 'Nunito,sans-serif', fontSize: '.8rem' }}>
+                        📋 View Call Transcript
+                      </button>
+                    )}
+                  </div>
+
                 </div>
               </div>
             )}
@@ -385,17 +408,21 @@ export default function ComplaintDetailPage() {
       </div>
 
       {showCallModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-2xl p-6 max-w-lg w-full shadow-2xl animate-[popIn_.3s_ease]">
-            <h2 className="text-xl font-heading font-bold mb-4 flex items-center gap-2">📞 AI Call Script Generated</h2>
-            <p className="text-sm text-gray-500 mb-4">This script is ready to pass into the Twilio Voice Pipeline API.</p>
-            <div className="bg-gray-100 p-4 rounded-xl text-sm font-mono whitespace-pre-wrap overflow-y-auto max-h-64 mb-4 select-all">
-              {callScript}
+        <CallPermissionModal
+          complaint={complaint}
+          onClose={() => setShowCallModal(false)}
+          onCallStarted={(data) => { setCallLogId(data.callLogId); setShowCallModal(false); setShowTranscript(true); }}
+        />
+      )}
+
+      {showTranscript && callLogId && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
+          <div style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', boxShadow: '0 24px 80px rgba(0,0,0,.25)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+              <div style={{ fontWeight: '800', fontSize: '1.1rem', fontFamily: 'Rajdhani,sans-serif', color: '#1A1A1A' }}>📞 Call Details & Transcript</div>
+              <button onClick={() => setShowTranscript(false)} style={{ background: '#F3F4F6', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px', color: '#555' }}>✕</button>
             </div>
-            <div className="flex justify-end gap-2">
-              <button onClick={() => { navigator.clipboard.writeText(callScript); toast.success("Copied!"); }} className="btn-secondary px-4 py-2 text-sm">Copy</button>
-              <button onClick={() => setShowCallModal(false)} className="btn-primary px-4 py-2 text-sm">Close</button>
-            </div>
+            <CallTranscriptViewer callLogId={callLogId} />
           </div>
         </div>
       )}

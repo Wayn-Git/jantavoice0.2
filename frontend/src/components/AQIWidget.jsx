@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { aqiAPI } from '../services/api';
 
 export default function AQIWidget({ onReportPollution }) {
+    const navigate = useNavigate();
     const [expanded, setExpanded] = useState(false);
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -69,7 +71,6 @@ export default function AQIWidget({ onReportPollution }) {
                         {data.aqi.advice}
                     </div>
 
-                    {/* Pollutants grid */}
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '.5rem', padding: '0 1rem 1rem' }}>
                         {[['PM2.5', data.components.pm25, 'µg/m³'], ['PM10', data.components.pm10, 'µg/m³'], ['NO2', data.components.no2, 'µg/m³'], ['O3', data.components.o3, 'µg/m³']].map(([k, v, u]) => (
                             <div key={k} style={{ background: '#F9FAF7', borderRadius: '8px', padding: '.5rem .75rem' }}>
@@ -77,6 +78,14 @@ export default function AQIWidget({ onReportPollution }) {
                                 <div style={{ fontSize: '.9rem', fontWeight: '800', color: '#1A1A1A' }}>{v} <span style={{ fontSize: '.65rem', color: '#aaa' }}>{u}</span></div>
                             </div>
                         ))}
+                    </div>
+
+                    <div style={{ padding: '0 1rem .75rem' }}>
+                        <button
+                            onClick={() => { setExpanded(false); navigate('/aqi-monitor'); }}
+                            style={{ width: '100%', background: 'rgba(255,255,255,0.08)', border: '1px solid rgba(255,255,255,0.15)', borderRadius: '10px', padding: '8px', color: 'gray', fontWeight: '700', fontSize: '.8rem', cursor: 'pointer', fontFamily: 'Nunito,sans-serif' }}>
+                            📊 Full AQI Monitor →
+                        </button>
                     </div>
 
                     {/* Report button if AQI is poor */}

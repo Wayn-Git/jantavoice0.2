@@ -158,9 +158,9 @@ export default function GovTrackerPage() {
                                     <td className="p-4 text-xs font-bold text-gray-500 uppercase">{t.portalName}</td>
                                     <td className="p-4">
                                         <span className={`px-2 py-1 rounded text-xs font-bold ${t.currentStatus === 'Submitted' ? 'bg-blue-100 text-blue-700' :
-                                                t.currentStatus === 'In Progress' ? 'bg-orange-100 text-orange-700' :
-                                                    t.currentStatus === 'Disposed' ? 'bg-green-100 text-green-700' :
-                                                        'bg-gray-100 text-gray-700'
+                                            t.currentStatus === 'In Progress' ? 'bg-orange-100 text-orange-700' :
+                                                t.currentStatus === 'Disposed' ? 'bg-green-100 text-green-700' :
+                                                    'bg-gray-100 text-gray-700'
                                             }`}>
                                             {t.currentStatus}
                                         </span>

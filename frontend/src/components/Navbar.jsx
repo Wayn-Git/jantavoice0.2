@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useNotification } from '../context/NotificationContext';
@@ -11,7 +11,18 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [dropOpen, setDropOpen] = useState(false);
   const [dropNotif, setDropNotif] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('theme') === 'dark');
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [darkMode]);
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 h-[60px] bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6">
@@ -30,6 +41,7 @@ export default function Navbar() {
       <div className="hidden md:flex items-center gap-6">
         <Link to="/" className="text-gray-500 hover:text-saffron font-bold text-sm transition-colors">Home</Link>
         <Link to="/feed" className="text-gray-500 hover:text-saffron font-bold text-sm transition-colors">Feed</Link>
+        <Link to="/aqi-monitor" className="text-gray-500 hover:text-saffron flex items-center gap-1 font-bold text-sm transition-colors">🌬️ AQI Monitor</Link>
         {isAuthenticated && (
           <>
             <Link to="/gov-tracking" className="text-gray-500 hover:text-saffron font-bold text-sm transition-colors">Gov Tracker</Link>
@@ -40,6 +52,9 @@ export default function Navbar() {
 
       {/* Right: Actions */}
       <div className="flex items-center gap-3">
+        <button onClick={() => setDarkMode(!darkMode)} className="w-10 h-10 flex items-center justify-center text-gray-500 hover:bg-gray-50 rounded-full transition-colors focus:outline-none" title="Toggle Dark Mode">
+          {darkMode ? '🌙' : '☀️'}
+        </button>
         {isAuthenticated ? (
           <>
             <div className="relative">
