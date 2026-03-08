@@ -3,7 +3,7 @@ const AutomationRule = require('../models/AutomationRule');
 const AutomationLog = require('../models/AutomationLog');
 const Complaint = require('../models/Complaint');
 const GovTicket = require('../models/GovTicket');
-const Notification = require('../models/Notification');
+const Notification = (() => { try { return require('../models/Notification'); } catch { return null; } })();
 const { statusMessage } = require('../services/groqService');
 
 const DEFAULT_RULES = [
@@ -30,7 +30,7 @@ async function executeAction(complaint, rule) {
                 status: rule.actionValue, updatedAt: new Date(),
                 $push: { statusHistory: { status: rule.actionValue, changedAt: new Date(), note: `Auto: ${rule.name}`, isAutomated: true } }
             });
-            await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'status_update', message: `🤖 Auto: "${complaint.title}" → ${rule.actionValue}` });
+            if (Notification) await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'status_update', message: `🤖 Auto: "${complaint.title}" → ${rule.actionValue}` });
             log.result = `Status → ${rule.actionValue}`;
         }
         else if (rule.action === 'submit_to_gov') {
@@ -42,7 +42,7 @@ async function executeAction(complaint, rule) {
             }
         }
         else if (rule.action === 'send_notification') {
-            await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'automation', message: `🤖 ${rule.actionValue}` });
+            if (Notification) await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'automation', message: `🤖 ${rule.actionValue}` });
             log.result = 'Notification sent';
         }
         else if (rule.action === 'generate_letter') {
@@ -52,13 +52,13 @@ async function executeAction(complaint, rule) {
                 const text = await generateLetter(complaint, user?.name || 'Citizen');
                 const ref = 'JV/' + new Date().getFullYear() + '/' + Math.floor(Math.random() * 90000 + 10000);
                 await Complaint.findByIdAndUpdate(complaint._id, { formalLetter: text, referenceNumber: ref });
-                await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'letter_generated', message: `📄 Formal letter auto-generated. Ref: ${ref}` });
+                if (Notification) await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'letter_generated', message: `📄 Formal letter auto-generated. Ref: ${ref}` });
                 log.result = `Letter generated: ${ref}`;
             }
         }
         else if (rule.action === 'ai_response') {
             const msg = await statusMessage(complaint, complaint.status);
-            await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'ai_update', message: `🤖 ${msg}` });
+            if (Notification) await Notification.create({ user: complaint.user, complaint: complaint._id, type: 'ai_update', message: `🤖 ${msg}` });
             log.result = 'AI message sent';
         }
         await AutomationLog.create({ ...log, success: true });

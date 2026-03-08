@@ -34,7 +34,7 @@ const audioUpload = multer({
 router.post('/transcribe', protect, audioUpload.single('audio'), transcribeVoice);
 router.post('/ai-categorize', protect, aiCategorize);
 router.post('/extract-details', protect, extractDetails);
-router.post('/quick-file', protect, quickFile);
+// Removed duplicate quick-file route
 router.get('/stats', protect, adminOnly, getStats);
 router.get('/my', protect, getMyComplaints);
 router.post('/', protect, complaintLimiter, upload.array('images', 3), createComplaint);
@@ -46,7 +46,10 @@ router.put('/:id/status', protect, adminOnly, updateStatus);
 router.get('/:id/generate-letter', protect, generateFormalLetter);
 router.delete('/:id', protect, deleteComplaint);
 
-const fakeDetector = require('../middleware/fakeDetector');
+const fakeDetector = (() => {
+  try { return require('../middleware/fakeDetector'); }
+  catch { return (req, res, next) => next(); }
+})();
 
 // Add these NEW routes only:
 const complaintController = require('../controllers/complaintController');

@@ -1,6 +1,6 @@
 const cron = require('node-cron');
 const Complaint = require('../models/Complaint');
-const Notification = require('../models/Notification');
+const Notification = (() => { try { return require('../models/Notification'); } catch { return null; } })();
 const { ESCALATION_DAYS } = require('../config/constants');
 
 async function runEscalations() {
@@ -19,7 +19,7 @@ async function runEscalations() {
             c.escalationLevel = 3;
             c.status = 'Escalated';
             c.statusHistory.push({ status: 'Escalated', changedAt: now, note: 'Auto-escalated to State Portal after 7 days', isAutomated: true });
-            await Notification.create({ user: c.user._id, complaint: c._id, type: 'escalation', message: `📈 Escalated to State Grievance Portal: "${c.title}"` });
+            if (Notification) await Notification.create({ user: c.user._id, complaint: c._id, type: 'escalation', message: `📈 Escalated to State Grievance Portal: "${c.title}"` });
             acted = true;
         } else if (days >= ESCALATION_DAYS.level2 && c.escalationLevel < 2) {
             c.escalationLevel = 2;
@@ -49,7 +49,7 @@ async function runEscalations() {
                     await CallLog.findByIdAndUpdate(log._id, { twilioCallSid: call.sid });
                 }
 
-                await Notification.create({
+                if (Notification) await Notification.create({
                     user: c.user._id,
                     complaint: c._id,
                     type: 'escalation',
@@ -62,7 +62,7 @@ async function runEscalations() {
             acted = true;
         } else if (days >= ESCALATION_DAYS.level1 && c.escalationLevel < 1) {
             c.escalationLevel = 1;
-            await Notification.create({ user: c.user._id, complaint: c._id, type: 'reminder', message: `⏰ Reminder sent to department for: "${c.title}"` });
+            if (Notification) await Notification.create({ user: c.user._id, complaint: c._id, type: 'reminder', message: `⏰ Reminder sent to department for: "${c.title}"` });
             acted = true;
         }
 

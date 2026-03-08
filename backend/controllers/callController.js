@@ -84,7 +84,7 @@ exports.confirmAndCall = async (req, res) => {
         });
 
         if (Notification) {
-            await Notification.create({
+            if (Notification) await Notification.create({
                 user: log.complaint.user._id,
                 complaint: log.complaint._id,
                 type: 'call_initiated',
@@ -356,7 +356,7 @@ Transcript:\n${transcript.substring(0, 1500)}`,
             await CallLog.findByIdAndUpdate(callLogId, { summary });
 
             if (Notification && log.complaint?.user?._id) {
-                await Notification.create({
+                if (Notification) await Notification.create({
                     user: log.complaint.user._id,
                     complaint: log.complaint._id,
                     type: 'call_completed',

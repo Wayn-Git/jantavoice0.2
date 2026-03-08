@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { complaintAPI, generateLetter } from '../services/api';
+import { complaintAPI } from '../services/api';
 import toast from 'react-hot-toast';
 import { FaFilePdf, FaDownload, FaMagic, FaSpinner } from 'react-icons/fa';
 
@@ -27,7 +27,7 @@ export default function LettersPage() {
         setGeneratingId(id);
         const toastId = toast.loading(`🤖 AI is drafting "${title.substring(0, 20)}..."`);
         try {
-            const res = await generateLetter(id);
+            const res = await complaintAPI.getLetter(id);
             const blob = new Blob([res.data], { type: 'application/pdf' });
 
             // Extract filename from header if possible

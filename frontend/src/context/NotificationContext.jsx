@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react';
-import { notifAPI } from '../services/api';
+import { notificationAPI } from '../services/api';
 import { useAuth } from './AuthContext';
 import toast from 'react-hot-toast';
 
@@ -16,7 +16,7 @@ export const NotificationProvider = ({ children }) => {
     const fetchNotifications = async () => {
         if (!isAuthenticated) return;
         try {
-            const { data } = await notifAPI.getAll();
+            const { data } = await notificationAPI.getAll();
             setNotifications(data.notifications || []);
 
             const unreadList = data.notifications?.filter(n => !n.isRead) || [];
@@ -49,14 +49,14 @@ export const NotificationProvider = ({ children }) => {
 
     const markAllRead = async () => {
         try {
-            await notifAPI.markAllRead();
+            await notificationAPI.markAllRead();
             fetchNotifications();
         } catch { }
     };
 
     const markAsRead = async (id) => {
         try {
-            await notifAPI.markAsRead(id);
+            await notificationAPI.markRead(id);
             fetchNotifications();
         } catch { }
     };

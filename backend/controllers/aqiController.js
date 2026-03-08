@@ -1,10 +1,6 @@
 const axios = require('axios');
-
-const OW_KEY = () => process.env.OPENWEATHER_API_KEY;
-
-function isConfigured() {
-    return !!(OW_KEY() && !OW_KEY().includes('your_'));
-}
+const OW_KEY = () => process.env.OPENWEATHER_API_KEY || '';
+const IS_DEMO = () => !OW_KEY() || OW_KEY().includes('your_');
 
 // AQI level mapping
 function getAQILevel(aqi) {
@@ -35,7 +31,7 @@ exports.getAQI = async (req, res) => {
         const { lat, lon } = req.query;
         if (!lat || !lon) return res.status(400).json({ success: false, message: 'lat and lon required' });
 
-        if (!isConfigured()) {
+        if (IS_DEMO()) {
             // Return mock data so frontend always works
             return res.json({
                 success: true,
@@ -93,7 +89,7 @@ exports.getAQIByCity = async (req, res) => {
         const { name } = req.query;
         if (!name) return res.status(400).json({ success: false, message: 'City name required' });
 
-        if (!isConfigured()) {
+        if (IS_DEMO()) {
             const mockAqiValues = { delhi: 312, mumbai: 156, bangalore: 89, pune: 134, hyderabad: 178, chennai: 112, kolkata: 198, ahmedabad: 167, jaipur: 221, lucknow: 289 };
             const key = name.toLowerCase().replace(/\s+/g, '');
             const found = Object.keys(mockAqiValues).find(k => key.includes(k));
@@ -157,7 +153,7 @@ exports.getMajorCities = async (req, res) => {
         { name: 'Bhopal', lat: 23.2599, lon: 77.4126 },
     ];
 
-    if (!isConfigured()) {
+    if (IS_DEMO()) {
         const mockVals = [312, 156, 89, 178, 112, 198, 134, 167, 221, 289, 95, 145];
         const data = CITIES.map((c, i) => {
             const val = mockVals[i];
@@ -191,7 +187,7 @@ exports.getMajorCities = async (req, res) => {
 exports.getForecast = async (req, res) => {
     try {
         const { lat, lon } = req.query;
-        if (!isConfigured()) {
+        if (IS_DEMO()) {
             const mock = Array.from({ length: 5 }, (_, i) => ({
                 date: new Date(Date.now() + i * 86400000).toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' }),
                 aqi: { value: 100 + Math.floor(Math.random() * 150), ...getAQILevel(Math.ceil(Math.random() * 4)) },

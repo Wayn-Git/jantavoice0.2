@@ -1,6 +1,6 @@
 const GovTicket = require('../models/GovTicket');
 const Complaint = require('../models/Complaint');
-const Notification = require('../models/Notification');
+const Notification = (() => { try { return require('../models/Notification'); } catch { return null; } })();
 const { PORTALS, STATE_PORTAL_MAP } = require('../config/constants');
 const cron = require('node-cron');
 

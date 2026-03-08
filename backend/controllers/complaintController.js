@@ -4,7 +4,7 @@ const os = require('os');
 const PDFDocument = require('pdfkit');
 const Complaint = require('../models/Complaint');
 const User = require('../models/User');
-const Notification = require('../models/Notification');
+const Notification = (() => { try { return require('../models/Notification'); } catch { return null; } })();
 const GovTicket = require('../models/GovTicket');
 const { groq, autoCategory, generateAdminNote } = require('../config/groq');
 const { portals } = require('../config/govPortals');
@@ -263,7 +263,7 @@ const likeComplaint = async (req, res, next) => {
       complaint.likes.push(userId);
       // Notify complaint owner (not self)
       if (complaint.user.toString() !== userId.toString()) {
-        await Notification.create({
+        if (Notification) await Notification.create({
           user: complaint.user,
           type: 'like',
           message: `${req.user.name} liked your complaint: "${complaint.title.substring(0, 50)}..."`,
@@ -295,7 +295,7 @@ const addComment = async (req, res, next) => {
 
     // Notify owner
     if (complaint.user.toString() !== req.user._id.toString()) {
-      await Notification.create({
+      if (Notification) await Notification.create({
         user: complaint.user,
         type: 'comment',
         message: `${req.user.name} commented on your complaint.`,
@@ -340,7 +340,7 @@ const updateStatus = async (req, res, next) => {
     await complaint.save();
 
     // Notify complaint owner
-    await Notification.create({
+    if (Notification) await Notification.create({
       user: complaint.user,
       type: 'status_update',
       message: `Your complaint "${complaint.title.substring(0, 50)}..." is now ${status}.`,
@@ -348,7 +348,7 @@ const updateStatus = async (req, res, next) => {
     });
 
     if (finalNote && finalNote !== adminNote) {
-      await Notification.create({
+      if (Notification) await Notification.create({
         user: complaint.user,
         type: 'admin_note',
         message: `Admin added a note to your complaint.`,
@@ -816,7 +816,7 @@ const _quickFile = async (req, res) => {
 
     // Create notification
     if (Notification) {
-      await Notification.create({
+      if (Notification) await Notification.create({
         user: req.user._id,
         complaint: complaint._id,
         type: 'submission',
@@ -883,7 +883,7 @@ exports.quickFile = async (req, res) => {
 
     // Create notification
     if (Notification) {
-      await Notification.create({
+      if (Notification) await Notification.create({
         user: req.user._id,
         complaint: complaint._id,
         type: 'submission',

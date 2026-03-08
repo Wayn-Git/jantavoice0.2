@@ -1,12 +1,12 @@
 import axios from 'axios';
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'https://jantavoice0-2.onrender.com/api',
-});
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+const api = axios.create({ baseURL: BASE_URL, timeout: 30000 });
 
 api.interceptors.request.use(config => {
-  const token = localStorage.getItem('jv_token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = localStorage.getItem('jv_token') || localStorage.getItem('token');
+  if (token) config.headers.Authorization = 'Bearer ' + token;
   return config;
 });
 
@@ -15,85 +15,73 @@ api.interceptors.response.use(
   err => {
     if (err.response?.status === 401) {
       localStorage.removeItem('jv_token');
-      localStorage.removeItem('jv_user');
-      window.location.href = '/login';
+      localStorage.removeItem('token');
+      if (!window.location.pathname.includes('/login')) {
+        window.location.href = '/login';
+      }
     }
     return Promise.reject(err);
   }
 );
 
 export const authAPI = {
-  register: data => api.post('/auth/register', data),
-  login: data => api.post('/auth/login', data),
-  getProfile: () => api.get('/auth/profile'),
-  updateProfile: data => api.put('/auth/profile', data),
-  changePassword: data => api.put('/auth/change-password', data),
+  login: d => api.post('/auth/login', d),
+  register: d => api.post('/auth/register', d),
+  profile: () => api.get('/auth/profile'),
+  logout: () => api.post('/auth/logout'),
 };
 
 export const complaintAPI = {
-  getAll: params => api.get('/complaints', { params }),
-  getById: id => api.get(`/complaints/${id}`),
-  getMy: params => api.get('/complaints/my', { params }),
-  create: formData => api.post('/complaints', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  like: id => api.put(`/complaints/${id}/like`),
-  comment: (id, text) => api.post(`/complaints/${id}/comment`, { text }),
-  updateStatus: (id, data) => api.put(`/complaints/${id}/status`, data),
-  delete: id => api.delete(`/complaints/${id}`),
+  create: (d, config) => api.post('/complaints', d, config),
+  quickFile: d => api.post('/complaints/quick-file', d),
+  aiCategorize: d => api.post('/complaints/ai-categorize', d),
+  getAll: p => api.get('/complaints', { params: p }),
+  getMy: () => api.get('/complaints/my'),
   getStats: () => api.get('/complaints/stats'),
-  aiCategorize: data => api.post('/complaints/ai-categorize', data),
-  extractDetails: data => api.post('/complaints/extract-details', data),
-  quickFile: data => api.post('/complaints/quick-file', data),
-  transcribeAudio: formData => api.post('/complaints/transcribe', formData, { headers: { 'Content-Type': 'multipart/form-data' } }),
-  generateLetter: id => api.post(`/complaints/${id}/generate-letter`, {}, { responseType: 'blob' }),
+  getById: id => api.get('/complaints/' + id),
+  toggleLike: id => api.put('/complaints/' + id + '/like'),
+  addComment: (id, d) => api.post('/complaints/' + id + '/comment', d),
+  updateStatus: (id, d) => api.put('/complaints/' + id + '/status', d),
+  delete: id => api.delete('/complaints/' + id),
+  getLetter: id => api.get('/complaints/' + id + '/letter', { responseType: 'blob' }),
+};
+
+export const aqiAPI = {
+  getByCoords: (lat, lon) => api.get('/aqi', { params: { lat, lon } }),
+  getByCity: name => api.get('/aqi/city', { params: { name } }),
+  getCities: () => api.get('/aqi/cities'),
+  getForecast: (lat, lon) => api.get('/aqi/forecast', { params: { lat, lon } }),
 };
 
 export const govAPI = {
-  submit: (complaintId) => api.post(`/gov/submit/${complaintId}`),
-  checkStatus: (ticketId) => api.get(`/gov/status/${ticketId}`),
-  check: (ticketId) => api.get(`/gov/status/${ticketId}`),
+  submit: id => api.post('/gov/submit/' + id),
+  check: id => api.get('/gov/status/' + id),
   getMyTickets: () => api.get('/gov/my-tickets'),
-  checkGovStatus: (ticketId, portal) => api.post('/gov/check', { ticketId, portal }),
   trackManual: d => api.post('/gov/track-manual', d),
-  getMyGovTickets: () => api.get('/gov/my-tickets'),
-  getAllAdminGovTickets: () => api.get('/gov/admin/tickets'),
 };
 
 export const automationAPI = {
   getRules: () => api.get('/automation/rules'),
-  toggleRule: (id) => api.put(`/automation/rules/${id}`),
+  toggleRule: id => api.put('/automation/rules/' + id),
   getLogs: () => api.get('/automation/logs'),
   runNow: () => api.post('/automation/run-now'),
 };
 
-export const notifAPI = {
-  getAll: () => api.get('/notifications'),
-  markRead: id => api.put(`/notifications/${id}/read`),
-  markAllRead: () => api.put('/notifications/read-all'),
+export const callAPI = {
+  requestPermission: id => api.post('/calls/' + id + '/request-permission'),
+  confirmCall: d => api.post('/calls/confirm-call', d),
+  getLog: id => api.get('/calls/' + id),
+  getAllLogs: () => api.get('/calls'),
 };
 
 export const chatbotAPI = {
   chat: d => api.post('/chatbot/chat', d),
 };
 
-export const aqiAPI = {
-  getByCoords: (lat, lon) => api.get('/aqi', { params: { lat, lon } }),
-  getByCity: (name) => api.get('/aqi/city', { params: { name } }),
-  getCities: () => api.get('/aqi/cities'),
-  getForecast: (lat, lon) => api.get('/aqi/forecast', { params: { lat, lon } }),
+export const notificationAPI = {
+  getAll: () => api.get('/notifications'),
+  markRead: id => api.put('/notifications/' + id + '/read'),
+  markAllRead: () => api.put('/notifications/read-all'),
 };
-
-export const callAPI = {
-  requestPermission: (complaintId) =>
-    api.post('/calls/' + complaintId + '/request-permission'),
-  confirmCall: (data) =>
-    api.post('/calls/confirm-call', data),
-  getLog: (callLogId) =>
-    api.get('/calls/' + callLogId),
-  getAllLogs: () =>
-    api.get('/calls'),
-};
-
-export const generateLetter = (complaintId) =>
-  api.get('/complaints/' + complaintId + '/generate-letter', { responseType: 'blob' });
 
 export default api;
