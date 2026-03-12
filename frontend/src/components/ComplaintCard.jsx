@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { FaHeart, FaRegHeart, FaComment, FaEye, FaMapMarkerAlt } from 'react-icons/fa';
-import { timeAgo, CATEGORY_ICONS, CATEGORY_ACCENT, STATUS_COLORS, getInitials } from '../utils/helpers';
+import { Heart, MessageSquare, Eye, MapPin, Flame, FileText, Settings } from 'lucide-react';
+import { timeAgo, getInitials, CATEGORY_ICONS } from '../utils/helpers';
 import { complaintAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
@@ -26,56 +26,54 @@ export default function ComplaintCard({ complaint, onLikeUpdate }) {
     finally { setLiking(false); }
   };
 
-  const accentColor = CATEGORY_ACCENT[complaint.category] || 'bg-gray-400';
-  const icon = CATEGORY_ICONS[complaint.category] || '📋';
+  const CategoryIcon = CATEGORY_ICONS[complaint.category] || CATEGORY_ICONS['Other'];
 
   return (
-    <Link to={`/complaint/${complaint._id}`} className="card block group relative overflow-hidden">
-      <div className={`h-1 w-full ${accentColor}`} />
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="flex gap-2 flex-wrap">
-            <span className={STATUS_COLORS[complaint.status] || 'badge-reported'}>
+    <Link to={`/complaint/${complaint._id}`} className="block group relative overflow-hidden glass-card">
+      <div className="p-5">
+        <div className="flex items-start justify-between gap-2 mb-3">
+          <div className="flex gap-2 flex-wrap text-[11px] font-medium">
+            <span className="badge bg-secondary text-foreground capitalize">
               ● {complaint.status}
             </span>
-            <span className="bg-saffron-pale text-saffron-dark text-xs font-bold px-2 py-1 rounded-full">
-              {icon} {complaint.category}
+            <span className="badge bg-secondary text-foreground flex items-center gap-1.5 px-3 py-1">
+              {CategoryIcon} {complaint.category}
             </span>
-            {complaint.govTicket && <span className="bg-purple-100 text-purple-700 text-xs font-bold px-2 py-1 rounded-full border border-purple-200" title="Gov Ticket Active">🏛️ GR#{complaint.govTicket.ticketId || complaint.govTicket.slice(-6)}</span>}
-            {complaint.formalLetter && <span className="bg-india-green-pale text-india-green-dark text-xs font-bold px-2 py-1 rounded-full border border-india-green/20" title="Formal Letter Ready">📄</span>}
+            {complaint.govTicket && <span className="badge bg-secondary text-foreground border border-border px-3 font-semibold" title="Gov Ticket Active">GR#{complaint.govTicket.ticketId || complaint.govTicket.slice(-6)}</span>}
+            {complaint.formalLetter && <span className="badge bg-secondary text-foreground border border-border flex items-center gap-1 px-3" title="Formal Letter Ready"><FileText size={12} /> Letter</span>}
             {complaint.statusHistory?.some(h => h.source === 'automation') && (
-              <span className="bg-blue-100 text-blue-700 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider tooltip-wrap border border-blue-200" title="Auto-managed">🤖</span>
+              <span className="badge bg-success/10 text-success border border-success/20 flex items-center gap-1 px-3" title="Auto-managed"><Settings size={12} /> Auto</span>
             )}
           </div>
           {(complaint.likes?.length >= 10 || likesCount >= 10) && (
-            <span className="bg-red-100 text-red-600 border border-red-200 text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap">🔥 Trending</span>
+            <span className="badge bg-saffron/10 text-saffron border border-saffron/20 border-opacity-50 flex items-center gap-1 font-bold whitespace-nowrap"><Flame size={14} className="animate-pulse" /> Trending</span>
           )}
         </div>
 
-        <h3 className="font-bold text-gray-800 text-sm leading-snug mb-1.5 line-clamp-2 group-hover:text-saffron-dark transition-colors">{complaint.title}</h3>
-        <p className="text-gray-500 text-xs leading-relaxed line-clamp-2 mb-3">{complaint.description}</p>
+        <h3 className="font-semibold text-foreground text-sm leading-snug mb-2 line-clamp-2 transition-colors">{complaint.title}</h3>
+        <p className="text-muted-foreground text-xs leading-relaxed line-clamp-2 mb-4">{complaint.description}</p>
 
-        <div className="flex items-center gap-1 text-gray-400 text-xs mb-3">
-          <FaMapMarkerAlt className="text-saffron flex-shrink-0" />
+        <div className="flex items-center gap-1.5 text-muted-foreground text-[11px] mb-4">
+          <MapPin size={12} className="text-primary flex-shrink-0" />
           <span className="truncate">{complaint.location?.address}{complaint.location?.city ? `, ${complaint.location.city}` : ''}</span>
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+        <div className="flex items-center justify-between pt-3 border-t border-border mt-auto">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-saffron to-saffron-dark flex items-center justify-center text-white text-[9px] font-bold">
+            <div className="w-6 h-6 rounded-full bg-secondary flex items-center justify-center text-foreground text-[10px] font-medium border border-border">
               {getInitials(complaint.user?.name || 'A')}
             </div>
             <div>
-              <p className="text-xs font-semibold text-gray-700">{complaint.user?.name || 'Anonymous'}</p>
-              <p className="text-[10px] text-gray-400">{timeAgo(complaint.createdAt)}</p>
+              <p className="text-[11px] font-medium text-foreground">{complaint.user?.name || 'Anonymous'}</p>
+              <p className="text-[10px] text-muted-foreground">{timeAgo(complaint.createdAt)}</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 text-xs text-gray-400">
-            <button onClick={handleLike} className={`flex items-center gap-1 transition-colors ${liked ? 'text-saffron' : 'hover:text-saffron-dark'}`}>
-              {liked ? <FaHeart /> : <FaRegHeart />} {likesCount}
+          <div className="flex items-center gap-3 text-[11px] text-muted-foreground font-medium">
+            <button onClick={handleLike} className={`flex items-center gap-1 transition-colors ${liked ? 'text-primary' : 'hover:text-primary'}`}>
+              <Heart size={14} fill={liked ? "currentColor" : "none"} /> {likesCount}
             </button>
-            <span className="flex items-center gap-1"><FaComment className="text-gray-300" /> {complaint.comments?.length || 0}</span>
-            <span className="flex items-center gap-1"><FaEye className="text-gray-300" /> {complaint.views || 0}</span>
+            <span className="flex items-center gap-1"><MessageSquare size={14} /> {complaint.comments?.length || 0}</span>
+            <span className="flex items-center gap-1"><Eye size={14} /> {complaint.views || 0}</span>
           </div>
         </div>
       </div>

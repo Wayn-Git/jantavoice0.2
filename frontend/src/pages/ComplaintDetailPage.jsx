@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { Heart, MessageCircle, Download, Eye, Trash2, ExternalLink, Loader, ArrowLeft, Phone } from 'lucide-react';
 import { complaintAPI, govAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import StatusTimeline from '../components/StatusTimeline';
@@ -7,8 +9,6 @@ import GovStatusBadge from '../components/GovStatusBadge';
 import CallPermissionModal from '../components/CallPermissionModal';
 import CallTranscriptViewer from '../components/CallTranscriptViewer';
 import { CATEGORY_ICONS, STATUS_COLORS, timeAgo, formatDate, getInitials } from '../utils/helpers';
-import { FaHeart, FaRegHeart, FaArrowLeft, FaTrash, FaExternalLinkAlt } from 'react-icons/fa';
-import { MdCall } from 'react-icons/md';
 import toast from 'react-hot-toast';
 
 export default function ComplaintDetailPage() {
@@ -123,9 +123,15 @@ export default function ComplaintDetailPage() {
   };
 
   if (loading) return (
-    <div className="pt-20 min-h-screen bg-gray-50 flex items-center justify-center">
-      <div className="animate-spin w-8 h-8 border-4 border-saffron border-t-transparent rounded-full" />
-    </div>
+    <motion.div
+      className="pt-20 min-h-screen bg-background flex items-center justify-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+    >
+      <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+        <Loader size={40} className="text-primary" />
+      </motion.div>
+    </motion.div>
   );
   if (!complaint) return null;
 
@@ -133,77 +139,86 @@ export default function ComplaintDetailPage() {
   const isAdmin = user?.role === 'admin';
 
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-6">
-        <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-sm text-gray-500 hover:text-saffron font-semibold mb-5 transition-colors">
-          <FaArrowLeft className="text-xs" /> Back
-        </button>
+    <div className="pt-20 min-h-screen bg-background">
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <motion.button
+          onClick={() => navigate(-1)}
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.95 }}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground font-semibold mb-6 transition-colors"
+        >
+          <ArrowLeft size={16} /> Back
+        </motion.button>
 
-        <div className="grid md:grid-cols-3 gap-5">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="grid md:grid-cols-3 gap-6"
+        >
           {/* Main */}
           <div className="md:col-span-2 space-y-4">
             {/* Image carousel or fallback */}
             {complaint.images?.length > 0 ? (
-              <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
-                <img src={`https://jantavoice0-2.onrender.com${complaint.images[imgIdx]}`} alt="Complaint" className="w-full h-64 object-cover bg-gray-100" />
+              <div className="glass-card rounded-3xl overflow-hidden p-1">
+                <img src={`https://jantavoice0-2.onrender.com${complaint.images[imgIdx]}`} alt="Complaint" className="w-full h-64 object-cover rounded-2xl bg-secondary/50" />
                 {complaint.images.length > 1 && (
-                  <div className="flex gap-2 p-3 bg-gray-50 border-t border-gray-100">
+                  <div className="flex gap-2 p-2 mt-1">
                     {complaint.images.map((img, i) => (
                       <button key={i} onClick={() => setImgIdx(i)}
-                        className={`w-14 h-10 rounded-lg overflow-hidden border-2 transition-all ${i === imgIdx ? 'border-saffron ring-2 ring-saffron/20' : 'border-gray-200 hover:border-saffron/50'}`}>
-                        <img src={`https://jantavoice0-2.onrender.com${img}`} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover bg-gray-100" />
+                        className={`w-14 h-10 rounded-lg overflow-hidden border-2 transition-all ${i === imgIdx ? 'border-primary ring-2 ring-primary/20' : 'border-transparent hover:border-border'}`}>
+                        <img src={`https://jantavoice0-2.onrender.com${img}`} alt={`Thumbnail ${i + 1}`} className="w-full h-full object-cover bg-secondary/50" />
                       </button>
                     ))}
                   </div>
                 )}
               </div>
             ) : (
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl h-64 flex flex-col items-center justify-center text-gray-400 shadow-inner">
+              <div className="bg-secondary/30 border border-border rounded-3xl h-64 flex flex-col items-center justify-center text-muted-foreground/50 shadow-inner">
                 <div className="text-6xl mb-4 drop-shadow-sm">{CATEGORY_ICONS[complaint.category] || '📋'}</div>
-                <p className="font-heading font-bold tracking-widest uppercase text-sm text-gray-500">{complaint.category}</p>
-                <p className="text-xs mt-2 opacity-70">No photos attached</p>
+                <p className="font-bold tracking-widest uppercase text-sm text-muted-foreground">{complaint.category}</p>
+                <p className="text-xs mt-2 opacity-70 font-medium">No photos attached</p>
               </div>
             )}
 
             {/* Content */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5">
-              <div className="flex flex-wrap gap-2 mb-3">
+            <div className="glass-card rounded-3xl p-6 sm:p-8">
+              <div className="flex flex-wrap gap-2 mb-4">
                 <span className={STATUS_COLORS[complaint.status]}>{complaint.status}</span>
-                <span className="bg-saffron-pale text-saffron-dark text-xs font-bold px-2 py-1 rounded-full">
+                <span className="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full">
                   {CATEGORY_ICONS[complaint.category]} {complaint.category}
                 </span>
-                <span className={`text-xs font-bold px-2 py-1 rounded-full ${complaint.priority === 'Critical' ? 'bg-saffron text-white shadow-sm' :
-                  complaint.priority === 'High' ? 'bg-saffron-pale text-saffron-dark' :
-                    complaint.priority === 'Medium' ? 'bg-gray-200 text-gray-800' : 'bg-india-green-pale text-india-green-dark'
+                <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${complaint.priority === 'Critical' ? 'bg-destructive text-destructive-foreground shadow-sm' :
+                  complaint.priority === 'High' ? 'bg-orange-500/10 text-orange-600' :
+                    complaint.priority === 'Medium' ? 'bg-blue-500/10 text-blue-600' : 'bg-green-500/10 text-green-600'
                   }`}>{complaint.priority} Priority</span>
               </div>
-              <h1 className="font-heading font-bold text-2xl leading-tight mb-3">{complaint.title}</h1>
+              <h1 className="font-bold text-3xl leading-tight mb-4 text-foreground tracking-tight">{complaint.title}</h1>
               {complaint.aiSummary && (
-                <div className="bg-ashoka-pale border border-ashoka/20 rounded-xl p-3 mb-3 text-sm text-ashoka flex gap-2">
-                  🤖 <span><strong>AI Summary:</strong> {complaint.aiSummary}</span>
+                <div className="bg-secondary/50 border border-border rounded-xl p-4 mb-4 text-sm text-foreground flex gap-3 items-start">
+                  <span className="text-lg">🤖</span> <span className="leading-relaxed"><strong className="text-primary font-semibold">AI Summary:</strong> {complaint.aiSummary}</span>
                 </div>
               )}
-              <p className="text-gray-600 leading-relaxed text-sm mb-4">{complaint.description}</p>
-              <div className="flex items-center gap-2 text-sm text-gray-500 mb-4">
-                📍 {complaint.location?.address}{complaint.location?.city ? `, ${complaint.location.city}` : ''}{complaint.location?.state ? `, ${complaint.location.state}` : ''}
+              <p className="text-muted-foreground font-medium leading-relaxed text-base mb-6">{complaint.description}</p>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground font-medium mb-6">
+                <span className="text-lg">📍</span> {complaint.location?.address}{complaint.location?.city ? `, ${complaint.location.city}` : ''}{complaint.location?.state ? `, ${complaint.location.state}` : ''}
               </div>
               {complaint.tags?.length > 0 && (
-                <div className="flex gap-2 flex-wrap mb-4">
+                <div className="flex gap-2 flex-wrap mb-6">
                   {complaint.tags.map(tag => (
-                    <span key={tag} className="bg-gray-100 text-gray-600 text-xs px-2 py-1 rounded-full">#{tag}</span>
+                    <span key={tag} className="bg-secondary text-foreground text-xs font-semibold px-3 py-1.5 rounded-full">#{tag}</span>
                   ))}
                 </div>
               )}
-              <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-                <button onClick={handleLike} className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${liked ? 'bg-saffron-pale text-saffron-dark border border-saffron/20' : 'bg-gray-100 text-gray-500 hover:bg-saffron-pale hover:text-saffron-dark border border-transparent'}`}>
-                  {liked ? <FaHeart /> : <FaRegHeart />} {likesCount} {liked ? 'Liked' : 'Like'}
+              <div className="flex items-center justify-between pt-5 border-t border-border mt-4">
+                <button onClick={handleLike} className={`flex items-center gap-2 px-4 py-2 rounded-xl font-bold text-sm transition-all ${liked ? 'bg-primary/10 text-primary' : 'bg-secondary text-muted-foreground hover:bg-primary/10 hover:text-primary'}`}>
+                  {liked ? <Heart className="fill-current w-4 h-4" /> : <Heart className="w-4 h-4" />} {likesCount} {liked ? 'Liked' : 'Like'}
                 </button>
-                <div className="flex items-center gap-3 text-xs text-gray-400">
-                  <span>👁️ {complaint.views} views</span>
-                  <span>💬 {complaint.comments?.length || 0} comments</span>
+                <div className="flex items-center gap-4 text-xs font-semibold text-muted-foreground">
+                  <span className="flex items-center gap-1.5"><Eye className="w-4 h-4" /> {complaint.views}</span>
+                  <span className="flex items-center gap-1.5"><MessageCircle className="w-4 h-4" /> {complaint.comments?.length || 0}</span>
                   {(isOwner || isAdmin) && (
-                    <button onClick={handleDelete} className="text-gray-400 hover:text-saffron-dark flex items-center gap-1">
-                      <FaTrash /> Delete
+                    <button onClick={handleDelete} className="text-muted-foreground hover:text-destructive flex items-center gap-1.5 transition-colors">
+                      <Trash2 className="w-4 h-4" /> Delete
                     </button>
                   )}
                 </div>
@@ -212,40 +227,40 @@ export default function ComplaintDetailPage() {
 
             {/* Admin note */}
             {complaint.adminNote && (
-              <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
-                <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">Admin Note</p>
-                <p className="text-sm text-gray-800">{complaint.adminNote}</p>
+              <div className="bg-secondary/50 border border-border rounded-3xl p-6">
+                <p className="text-xs font-bold text-primary uppercase tracking-wider mb-2">Admin Note</p>
+                <p className="text-sm text-foreground font-medium leading-relaxed">{complaint.adminNote}</p>
               </div>
             )}
 
             {/* Comments */}
-            <div className="bg-white border border-gray-200 rounded-2xl p-5">
-              <h3 className="font-heading font-bold text-lg mb-4">Comments ({complaint.comments?.length || 0})</h3>
+            <div className="glass-card rounded-3xl p-6 sm:p-8">
+              <h3 className="font-bold text-xl mb-5 text-foreground tracking-tight">Comments ({complaint.comments?.length || 0})</h3>
               {isAuthenticated ? (
-                <form onSubmit={handleComment} className="flex gap-2 mb-5">
-                  <input className="input flex-1" value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." maxLength={500} />
-                  <button disabled={!comment.trim() || commenting} className="btn-primary px-4 text-sm disabled:opacity-60">
+                <form onSubmit={handleComment} className="flex gap-3 mb-6">
+                  <input className="input flex-1 bg-secondary/50 border-border" value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a comment..." maxLength={500} />
+                  <button disabled={!comment.trim() || commenting} className="btn btn-primary px-6 text-sm disabled:opacity-60">
                     {commenting ? '...' : 'Post'}
                   </button>
                 </form>
               ) : (
-                <div className="bg-gray-50 border border-gray-200 rounded-xl p-3 mb-4 text-sm text-gray-500 text-center">
-                  <Link to="/login" className="text-saffron-dark font-bold hover:underline">Login</Link> to add a comment
+                <div className="bg-secondary/50 border border-border rounded-xl p-4 mb-5 text-sm font-medium text-muted-foreground text-center">
+                  <Link to="/login" className="text-primary font-bold hover:underline">Login</Link> to add a comment
                 </div>
               )}
-              <div className="space-y-3">
-                {complaint.comments?.length === 0 && <p className="text-gray-400 text-sm text-center py-4">No comments yet. Be the first!</p>}
+              <div className="space-y-4">
+                {complaint.comments?.length === 0 && <p className="text-muted-foreground font-medium text-sm text-center py-6">No comments yet. Be the first!</p>}
                 {complaint.comments?.map(c => (
-                  <div key={c._id} className="flex gap-3">
-                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-saffron to-saffron-dark flex items-center justify-center text-white text-[10px] font-bold flex-shrink-0">
+                  <div key={c._id} className="flex gap-4">
+                    <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold flex-shrink-0 shadow-sm">
                       {getInitials(c.user?.name || 'A')}
                     </div>
-                    <div className="flex-1 bg-gray-50 rounded-xl px-3 py-2">
-                      <div className="flex justify-between items-start mb-1">
-                        <span className="text-xs font-bold text-gray-700">{c.user?.name || 'Anonymous'}</span>
-                        <span className="text-[10px] text-gray-400">{timeAgo(c.createdAt)}</span>
+                    <div className="flex-1 bg-secondary/30 border border-border rounded-2xl p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <span className="text-sm font-bold text-foreground">{c.user?.name || 'Anonymous'}</span>
+                        <span className="text-xs font-semibold text-muted-foreground">{timeAgo(c.createdAt)}</span>
                       </div>
-                      <p className="text-sm text-gray-600">{c.text}</p>
+                      <p className="text-sm text-foreground leading-relaxed">{c.text}</p>
                     </div>
                   </div>
                 ))}
@@ -255,74 +270,74 @@ export default function ComplaintDetailPage() {
 
           {/* Sidebar */}
           <div className="space-y-4">
-            <div className="bg-white border border-gray-200 rounded-2xl p-4">
-              <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-500 mb-3">Status Progress</h4>
+            <div className="glass-card rounded-3xl p-6">
+              <h4 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">Status Progress</h4>
               <StatusTimeline statusHistory={complaint.statusHistory} currentStatus={complaint.status} />
             </div>
-            <div className="bg-white border border-gray-200 rounded-2xl p-4">
-              <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-500 mb-3">Filed By</h4>
+            <div className="glass-card rounded-3xl p-6">
+              <h4 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4">Filed By</h4>
               {complaint.isAnonymous ? (
-                <div className="flex items-center gap-2"><div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">👤</div><span className="text-sm font-semibold">Anonymous</span></div>
+                <div className="flex items-center gap-3"><div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center text-muted-foreground">👤</div><span className="text-sm font-bold text-foreground">Anonymous</span></div>
               ) : (
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-saffron to-saffron-dark flex items-center justify-center text-white text-xs font-bold">{getInitials(complaint.user?.name)}</div>
-                  <div><p className="text-sm font-bold">{complaint.user?.name}</p><p className="text-xs text-gray-400">{complaint.user?.complaintsCount || 0} complaints filed</p></div>
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center text-primary-foreground text-sm font-bold shadow-sm">{getInitials(complaint.user?.name)}</div>
+                  <div><p className="text-sm font-bold text-foreground">{complaint.user?.name}</p><p className="text-xs text-muted-foreground font-medium">{complaint.user?.complaintsCount || 0} complaints filed</p></div>
                 </div>
               )}
-              <p className="text-xs text-gray-400 mt-3">📅 Filed {formatDate(complaint.createdAt)}</p>
+              <p className="text-xs font-semibold text-muted-foreground mt-4 pt-4 border-t border-border">📅 Filed {formatDate(complaint.createdAt)}</p>
             </div>
 
             {(isOwner || isAdmin) && (
-              <div className="bg-gradient-to-br from-gray-800 to-gray-900 border border-gray-700 rounded-2xl p-4 text-white relative overflow-hidden">
-                <div className="absolute top-0 right-0 p-3 opacity-10 text-6xl">🤖</div>
-                <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-400 mb-3 relative z-10 flex items-center gap-2">
+              <div className="bg-foreground text-background rounded-3xl p-6 relative overflow-hidden shadow-lg">
+                <div className="absolute top-0 right-0 p-4 opacity-5 text-6xl">🤖</div>
+                <h4 className="font-bold text-sm uppercase tracking-wider text-muted mb-4 relative z-10 flex items-center gap-2">
                   ⚡ Automation Status
                 </h4>
-                <div className="space-y-3 text-xs relative z-10">
-                  <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
-                    <span className="text-gray-400">Auto-monitoring:</span>
-                    <span className="flex items-center gap-1 text-india-green font-bold">
-                      <span className="w-2 h-2 rounded-full bg-india-green animate-pulse"></span> Active
+                <div className="space-y-3 text-sm relative z-10 font-medium">
+                  <div className="flex justify-between items-center bg-background/10 p-2.5 rounded-xl backdrop-blur-sm">
+                    <span className="text-muted/80">Auto-monitoring:</span>
+                    <span className="flex items-center gap-1 text-green-400 font-bold">
+                      <span className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></span> Active
                     </span>
                   </div>
-                  <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
-                    <span className="text-gray-400">Gov Submission:</span>
-                    <span className={complaint.govTicket ? "text-india-green font-bold" : "text-saffron font-bold"}>
+                  <div className="flex justify-between items-center bg-background/10 p-2.5 rounded-xl backdrop-blur-sm">
+                    <span className="text-muted/80">Gov Submission:</span>
+                    <span className={complaint.govTicket ? "text-green-400 font-bold" : "text-primary font-bold"}>
                       {complaint.govTicket ? `GR#${complaint.govTicket.ticketId || complaint.govTicket.slice(-6)}` : 'Pending'}
                     </span>
                   </div>
-                  <div className="flex justify-between items-center bg-gray-800/50 p-2 rounded">
-                    <span className="text-gray-400">Next auto-check:</span>
-                    <span className="text-gray-300 font-bold">in ~24 mins</span>
+                  <div className="flex justify-between items-center bg-background/10 p-2.5 rounded-xl backdrop-blur-sm">
+                    <span className="text-muted/80">Next auto-check:</span>
+                    <span className="text-background font-bold">in ~24 mins</span>
                   </div>
 
-                  <div className="pt-2 border-t border-gray-700 mt-2">
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">📄 Formal Letter</div>
+                  <div className="pt-3 border-t border-background/20 mt-3">
+                    <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-3">📄 Formal Letter</div>
                     {complaint.referenceNumber ? (
-                      <button onClick={handleLetterDownload} disabled={downloadingLetter} className="btn-secondary w-full text-center text-xs py-2 flex items-center justify-center gap-2 border-gray-600 bg-gray-800 text-white hover:bg-gray-700 hover:text-white transition-colors">
+                      <button onClick={handleLetterDownload} disabled={downloadingLetter} className="btn w-full bg-background/20 hover:bg-background/30 text-background text-sm py-2.5 flex items-center justify-center gap-2 border border-background/20 backdrop-blur-md transition-all">
                         {downloadingLetter ? 'Downloading...' : 'Download PDF'}
                       </button>
                     ) : (
-                      <button onClick={handleLetterDownload} disabled={downloadingLetter} className="btn-primary w-full text-center text-xs py-2 flex items-center justify-center gap-2 border-none">
+                      <button onClick={handleLetterDownload} disabled={downloadingLetter} className="btn w-full bg-primary hover:bg-primary/90 text-primary-foreground text-sm py-2.5 flex items-center justify-center gap-2 transition-all">
                         {downloadingLetter ? 'Generating...' : 'Generate Letter'}
                       </button>
                     )}
                   </div>
 
-                  <div className="pt-2 border-t border-gray-700 mt-2 space-y-2">
-                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1 mt-1">📞 Automated Calling</div>
+                  <div className="pt-3 border-t border-background/20 mt-3 space-y-3">
+                    <div className="text-[10px] font-bold text-muted uppercase tracking-widest mb-2 mt-1">📞 Automated Calling</div>
 
                     {!complaint.callLogId && (
                       <button
                         onClick={() => setShowCallModal(true)}
-                        style={{ display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '.5rem', padding: '8px 16px', background: 'linear-gradient(135deg,#138808,#0A5C04)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: '800', fontFamily: 'Nunito,sans-serif', fontSize: '.8rem' }}>
+                        className="btn w-full bg-green-600 hover:bg-green-700 text-white text-sm py-2.5 flex items-center justify-center gap-2 transition-all">
                         📞 Call Department via AI
                       </button>
                     )}
 
                     {complaint.callLogId && (
                       <button onClick={() => { setCallLogId(complaint.callLogId); setShowTranscript(true); }}
-                        style={{ display: 'flex', width: '100%', justifyContent: 'center', alignItems: 'center', gap: '.5rem', padding: '8px 16px', border: '1px solid #138808', color: '#138808', background: 'white', borderRadius: '8px', cursor: 'pointer', fontWeight: '700', fontFamily: 'Nunito,sans-serif', fontSize: '.8rem' }}>
+                        className="btn w-full bg-background hover:bg-muted text-foreground text-sm py-2.5 flex items-center justify-center gap-2 transition-all font-bold">
                         📋 View Call Transcript
                       </button>
                     )}
@@ -333,38 +348,38 @@ export default function ComplaintDetailPage() {
             )}
 
             {complaint.govTicket && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4">
-                <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-500 mb-3 flex items-center gap-2">
+              <div className="glass-card rounded-3xl p-6">
+                <h4 className="font-bold text-sm uppercase tracking-wider text-muted-foreground mb-4 flex items-center gap-2">
                   🏛️ Government Ticket
                 </h4>
 
-                <div className="space-y-3">
-                  <div className="bg-gray-50 border border-gray-200 p-3 rounded-xl">
-                    <div className="flex justify-between items-center mb-1">
-                      <span className="text-xs text-gray-500">Ticket ID</span>
-                      <span className="text-[10px] text-gray-500 bg-gray-200 px-2 py-0.5 rounded font-bold uppercase tracking-wide">{complaint.govTicket.portalName || 'CPGRAMS'}</span>
+                <div className="space-y-4">
+                  <div className="bg-secondary/50 border border-border p-4 rounded-2xl">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-xs font-semibold text-muted-foreground">Ticket ID</span>
+                      <span className="text-[10px] text-foreground bg-secondary px-2 py-1 rounded font-bold uppercase tracking-widest border border-border mt-1">{complaint.govTicket.portalName || 'CPGRAMS'}</span>
                     </div>
-                    <div className="flex justify-between items-center mt-1">
-                      <span className="font-mono text-sm font-bold text-gray-800">{complaint.govTicket.ticketId || complaint.govTicket}</span>
-                      <button onClick={() => { navigator.clipboard.writeText(complaint.govTicket.ticketId || complaint.govTicket); toast.success('Ticket ID Copied!'); }} className="text-saffron hover:text-saffron-dark text-xs font-bold transition-colors bg-saffron-pale px-2 py-1 rounded">Copy</button>
+                    <div className="flex justify-between items-center mt-2">
+                      <span className="font-mono text-base font-bold text-foreground">{complaint.govTicket.ticketId || complaint.govTicket}</span>
+                      <button onClick={() => { navigator.clipboard.writeText(complaint.govTicket.ticketId || complaint.govTicket); toast.success('Ticket ID Copied!'); }} className="text-primary hover:bg-primary/20 text-xs font-bold transition-all bg-primary/10 px-3 py-1.5 rounded-lg">Copy</button>
                     </div>
                   </div>
 
                   <div>
-                    <div className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Current Status</div>
+                    <div className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-2">Current Status</div>
                     <GovStatusBadge status={complaint.govTicket.currentStatus || 'Submitted'} />
                   </div>
 
                   {complaint.govTicket.statusHistory && (
-                    <div className="pt-2 border-t border-gray-100">
-                      <h5 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">Progression</h5>
-                      <div className="space-y-2">
+                    <div className="pt-3 border-t border-border mt-2">
+                      <h5 className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mb-3">Progression</h5>
+                      <div className="space-y-3">
                         {complaint.govTicket.statusHistory?.slice(-3).map((h, i) => (
-                          <div key={i} className="flex gap-2 text-xs">
-                            <div className="text-india-green mt-0.5">●</div>
+                          <div key={i} className="flex gap-3 text-sm">
+                            <div className="text-primary mt-0.5 text-lg leading-none">●</div>
                             <div>
-                              <div className="font-bold text-gray-700">{h.status}</div>
-                              <div className="text-[10px] text-gray-400">{timeAgo(h.timestamp)}</div>
+                              <div className="font-bold text-foreground">{h.status}</div>
+                              <div className="text-xs font-medium text-muted-foreground mt-0.5">{timeAgo(h.timestamp)}</div>
                             </div>
                           </div>
                         ))}
@@ -372,9 +387,9 @@ export default function ComplaintDetailPage() {
                     </div>
                   )}
 
-                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-gray-100 mt-2">
-                    <a href={complaint.govTicket.ticketUrl || '#'} target="_blank" rel="noreferrer" className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold py-2 rounded-lg flex items-center justify-center gap-1 transition-colors">
-                      Portal <FaExternalLinkAlt className="text-[10px]" />
+                  <div className="grid grid-cols-2 gap-3 pt-3 border-t border-border mt-3">
+                    <a href={complaint.govTicket.ticketUrl || '#'} target="_blank" rel="noreferrer" className="bg-secondary hover:bg-primary/10 text-foreground hover:text-primary border border-border hover:border-primary/20 text-sm font-bold py-2.5 rounded-xl flex items-center justify-center gap-2 transition-all">
+                      Portal <ExternalLink size={14} />
                     </a>
                     <button onClick={async () => {
                       const tid = toast.loading('Checking status...');
@@ -386,7 +401,7 @@ export default function ComplaintDetailPage() {
                       } catch {
                         toast.error('Check failed', { id: tid });
                       }
-                    }} className="btn-secondary text-xs py-2 flex items-center justify-center gap-1 bg-white border border-gray-200 text-gray-700 hover:bg-gray-50">
+                    }} className="btn btn-secondary text-sm py-2.5 flex items-center justify-center gap-1">
                       🔄 Check Now
                     </button>
                   </div>
@@ -395,16 +410,16 @@ export default function ComplaintDetailPage() {
             )}
 
             {isAdmin && (
-              <div className="bg-white border border-gray-200 rounded-2xl p-4 mt-4">
-                <h4 className="font-heading font-bold text-sm uppercase tracking-wide text-gray-500 mb-3">Admin Actions</h4>
-                <button onClick={handleInitiateCall} disabled={calling} className="btn-primary w-full text-center text-sm py-2 mb-2 flex items-center justify-center gap-2">
-                  <MdCall size={16} /> {calling ? 'Calling AI...' : '📞 Initiate AI Call'}
+              <div className="glass-card rounded-3xl p-6 mt-4 border-primary/20 bg-primary/5">
+                <h4 className="font-bold text-sm uppercase tracking-wider text-primary mb-4">Admin Actions</h4>
+                <button onClick={handleInitiateCall} disabled={calling} className="btn btn-primary w-full text-center text-sm py-3 mb-3 flex items-center justify-center gap-2">
+                  <Phone size={16} /> {calling ? 'Calling AI...' : '📞 Initiate AI Call'}
                 </button>
-                <Link to="/admin" className="btn-secondary w-full text-center text-sm py-2 block">Open Admin Panel</Link>
+                <Link to="/admin" className="btn btn-secondary w-full text-center text-sm py-3 block">Open Admin Panel</Link>
               </div>
             )}
           </div>
-        </div>
+        </motion.div>
       </div>
 
       {showCallModal && (
@@ -416,11 +431,11 @@ export default function ComplaintDetailPage() {
       )}
 
       {showTranscript && callLogId && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,.55)', zIndex: 1900, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem' }}>
-          <div style={{ background: 'white', borderRadius: '24px', width: '100%', maxWidth: '640px', maxHeight: '90vh', overflowY: 'auto', padding: '1.5rem', boxShadow: '0 24px 80px rgba(0,0,0,.25)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-              <div style={{ fontWeight: '800', fontSize: '1.1rem', fontFamily: 'Rajdhani,sans-serif', color: '#1A1A1A' }}>📞 Call Details & Transcript</div>
-              <button onClick={() => setShowTranscript(false)} style={{ background: '#F3F4F6', border: 'none', borderRadius: '50%', width: '32px', height: '32px', cursor: 'pointer', fontSize: '16px', color: '#555' }}>✕</button>
+        <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[1900] flex items-center justify-center p-4">
+          <div className="glass-card bg-background rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-border">
+            <div className="flex justify-between items-center mb-6">
+              <div className="font-bold text-xl text-foreground tracking-tight">📞 Call Details & Transcript</div>
+              <button onClick={() => setShowTranscript(false)} className="bg-secondary hover:bg-secondary/80 text-foreground rounded-full w-8 h-8 flex items-center justify-center transition-colors border border-border">✕</button>
             </div>
             <CallTranscriptViewer callLogId={callLogId} />
           </div>

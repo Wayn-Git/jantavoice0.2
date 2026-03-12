@@ -1,11 +1,23 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FileDown, Eye, Trash2, Loader, Folder, CheckCircle2, AlertCircle, Clock } from 'lucide-react';
 import { complaintAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import StatusTimeline from '../components/StatusTimeline';
 import { CATEGORY_ICONS, STATUS_COLORS, formatDate, timeAgo } from '../utils/helpers';
-import { FaTrash, FaEye, FaFileAlt, FaSpinner } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05, delayChildren: 0.1 } }
+};
+
+const itemVariants = {
+  hidden: { opacity: 0, y: 10 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.4 } },
+  exit: { opacity: 0, x: -100, transition: { duration: 0.3 } }
+};
 
 export default function MyComplaintsPage() {
   const { isAuthenticated } = useAuth();
@@ -66,73 +78,197 @@ export default function MyComplaintsPage() {
     }
   };
 
+  const getStatusIcon = (status) => {
+    if (status === 'Resolved') return <CheckCircle2 size={18} className="text-green-500" />;
+    if (status === 'Rejected') return <AlertCircle size={18} className="text-red-500" />;
+    return <Clock size={18} className="text-blue-500" />;
+  };
+
   return (
-    <div className="pt-20 min-h-screen bg-gray-50">
-      <div className="max-w-3xl mx-auto px-4 py-6">
-        <h1 className="font-heading font-bold text-3xl mb-1">My <span className="text-saffron">Complaints</span></h1>
-        <p className="text-gray-500 text-sm mb-5">{complaints.length} complaint{complaints.length !== 1 ? 's' : ''} filed</p>
+    <div className="w-full">
+      <div className="max-w-4xl mx-auto px-4 sm:px-0 py-4 md:py-8">
+        {/* Header Bento Box */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-3xl p-8 border border-border shadow-sm mb-8 relative overflow-hidden group"
+        >
+          <div className="absolute top-0 left-0 w-full h-1.5 bg-gradient-to-r from-primary via-white to-success opacity-80" />
+          <div className="absolute -left-16 -top-16 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none group-hover:bg-primary/10 transition-colors duration-700" />
 
-        <div className="flex gap-1 bg-white border border-gray-200 rounded-xl p-1 w-fit mb-5 shadow-sm">
-          {[['all', 'All'], ['active', 'Active'], ['resolved', 'Resolved'], ['rejected', 'Rejected']].map(([val, label]) => (
-            <button key={val} onClick={() => setTab(val)}
-              className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${tab === val ? 'bg-saffron text-white' : 'text-gray-500 hover:text-gray-700'}`}>
+          <div className="relative z-10">
+            <h1 className="text-4xl lg:text-5xl font-bold text-foreground tracking-tight mb-3">
+              My <span className="text-primary">Reports</span>
+            </h1>
+            <p className="text-muted-foreground font-medium text-lg flex items-center gap-2">
+              <Folder size={20} className="text-success" />
+              {complaints.length} issue{complaints.length !== 1 ? 's' : ''} reported to the portal
+            </p>
+          </div>
+        </motion.div>
+
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex gap-2 bg-secondary/50 border border-border rounded-2xl p-1.5 w-fit mb-8 backdrop-blur-md"
+        >
+          {[['all', 'All'], ['active', 'Active'], ['resolved', 'Resolved'], ['rejected', 'Rejected']].map(([val, label], i) => (
+            <motion.button
+              key={val}
+              onClick={() => setTab(val)}
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: i * 0.05 }}
+              className={`px-5 py-2.5 rounded-xl text-sm font-semibold transition-all ${tab === val
+                ? 'bg-background text-foreground shadow-sm border border-border'
+                : 'text-muted-foreground hover:bg-secondary'}`}
+            >
               {label}
-            </button>
+            </motion.button>
           ))}
-        </div>
+        </motion.div>
 
+        {/* Content */}
         {loading ? (
-          <div className="flex justify-center py-16"><div className="animate-spin w-8 h-8 border-4 border-saffron border-t-transparent rounded-full" /></div>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="flex justify-center py-20"
+          >
+            <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: "linear" }}>
+              <Loader size={40} className="text-primary" />
+            </motion.div>
+          </motion.div>
         ) : filtered.length === 0 ? (
-          <div className="text-center py-16">
-            <div className="text-6xl opacity-30 mb-4">📂</div>
-            <p className="text-gray-500 mb-4">{tab === 'all' ? "You haven't filed any complaints yet." : `No ${tab} complaints.`}</p>
-            {tab === 'all' && <Link to="/report" className="btn-primary inline-flex">📢 File Your First Complaint</Link>}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center py-16 glass-card rounded-3xl shadow-sm"
+          >
+            <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut' }} className="mb-4">
+              <Folder size={80} className="mx-auto text-muted-foreground/30" />
+            </motion.div>
+            <h3 className="text-xl font-bold text-foreground tracking-tight mb-2">No complaints here.</h3>
+            <p className="text-muted-foreground font-medium text-base mb-6">{tab === 'all' ? "You haven't filed any complaints yet." : `No ${tab} complaints.`}</p>
+            {tab === 'all' && (
+              <Link to="/report" className="btn btn-primary inline-flex items-center gap-2 px-6 py-3">
+                📢 File Your First Complaint
+              </Link>
+            )}
+          </motion.div>
         ) : (
-          <div className="space-y-3">
-            {filtered.map(c => (
-              <div key={c._id} className="bg-white border border-gray-200 rounded-2xl p-5 shadow-sm hover:border-saffron/50 transition-colors">
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-gray-800 text-sm line-clamp-2 leading-snug">{c.title}</h3>
-                    <div className="flex flex-wrap gap-2 mt-1.5 text-xs text-gray-400">
-                      <span>{CATEGORY_ICONS[c.category]} {c.category}</span>
-                      <span>📍 {c.location?.city || c.location?.address}</span>
-                      <span>📅 {formatDate(c.createdAt)}</span>
-                      <span>❤️ {c.likesCount || 0}</span>
-                      <span>👁️ {c.views || 0}</span>
+          <motion.div
+            variants={containerVariants}
+            initial="hidden"
+            animate="visible"
+            className="grid grid-cols-1 md:grid-cols-2 gap-6"
+          >
+            <AnimatePresence mode="popLayout">
+              {filtered.map((c, idx) => (
+                <motion.div
+                  key={c._id}
+                  variants={itemVariants}
+                  layout
+                  className={`bg-card rounded-3xl p-6 border shadow-sm hover:shadow-lg transition-all flex flex-col justify-between group h-full relative overflow-hidden ${c.status === 'Resolved' ? 'border-success/30 hover:border-success/60' : 'border-border hover:border-primary/50'
+                    }`}
+                >
+                  <div className={`absolute top-0 left-0 w-full h-1 opacity-60 ${c.status === 'Resolved' ? 'bg-success' : c.status === 'Rejected' ? 'bg-destructive' : 'bg-primary'
+                    }`} />
+                  <div className="flex items-start justify-between gap-4 mb-6 relative z-10">
+                    <div className="flex-1 min-w-0">
+                      <h3 className="font-bold text-foreground text-xl tracking-tight leading-snug mb-3 group-hover:text-primary transition-colors">{c.title}</h3>
+                      <div className="flex flex-wrap gap-2 text-xs text-muted-foreground font-bold uppercase tracking-wider">
+                        <div className="px-2 py-1 bg-secondary rounded-lg flex items-center gap-1">
+                          <span>{CATEGORY_ICONS[c.category]}</span>
+                          <span>{c.category}</span>
+                        </div>
+                        <div className="px-2 py-1 bg-secondary rounded-lg flex items-center gap-1 opacity-80">
+                          📍 {c.location?.city || c.location?.address}
+                        </div>
+                        <div className="px-2 py-1 bg-secondary rounded-lg flex items-center gap-1 opacity-80">
+                          📅 {formatDate(c.createdAt)}
+                        </div>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <span className={STATUS_COLORS[c.status]}>{c.status}</span>
-                    <div className="flex gap-1">
-                      {c.govTicket && <span className="text-sm" title="Gov Ticket Active">🏛️</span>}
-                      {c.referenceNumber && <span className="text-sm" title="Formal Letter Ready">📄</span>}
-                      {c.statusHistory?.some(h => h.source === 'automation') && <span className="text-sm" title="Auto-Escalated">🤖</span>}
+
+                  {/* Actions & Status Row */}
+                  <div className="mt-auto pt-4 border-t border-border flex items-center justify-between relative z-10">
+                    <div className="flex items-center gap-2">
+                      {/* Status Badge */}
+                      <div className={`flex items-center gap-2 px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider border ${c.status === 'Resolved' ? 'bg-success/10 text-success border-success/20' : c.status === 'Rejected' ? 'bg-destructive/10 text-destructive border-destructive/20' : 'bg-primary/10 text-primary border-primary/20'
+                        }`}>
+                        {getStatusIcon(c.status)}
+                        {c.status}
+                      </div>
+
+                      {/* Context Bubbles */}
+                      <div className="flex gap-1 ml-1">
+                        {c.govTicket && <span className="text-sm bg-secondary rounded-full flex items-center justify-center w-6 h-6 border border-border" title="Gov Ticket Active">🏛️</span>}
+                        {c.referenceNumber && <span className="text-sm bg-secondary rounded-full flex items-center justify-center w-6 h-6 border border-border" title="Formal Letter Ready">📄</span>}
+                      </div>
                     </div>
-                    <div className="flex gap-1 mt-1">
-                      <button onClick={() => handleLetterDownload(c._id)} disabled={generatingId === c._id} className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center text-gray-600 transition-colors tooltip-wrap" title="Generate Letter">
-                        {generatingId === c._id ? <FaSpinner className="animate-spin text-sm" /> : <FaFileAlt className="text-sm" />}
-                      </button>
-                      <Link to={`/complaint/${c._id}`} className="w-8 h-8 bg-gray-100 hover:bg-saffron-pale rounded-lg flex items-center justify-center text-gray-500 hover:text-saffron transition-colors">
-                        <FaEye className="text-sm" />
-                      </Link>
-                      <button onClick={() => handleDelete(c._id)} className="w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-lg flex items-center justify-center text-gray-400 hover:text-saffron-dark transition-colors">
-                        <FaTrash className="text-sm" />
-                      </button>
+
+                    <div className="flex gap-2">
+                      <motion.button
+                        onClick={() => handleLetterDownload(c._id)}
+                        disabled={generatingId === c._id}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-10 h-10 bg-secondary border border-border hover:bg-success hover:border-success hover:text-success-foreground rounded-xl flex items-center justify-center text-muted-foreground transition-all disabled:opacity-50"
+                        title="Generate Letter"
+                      >
+                        {generatingId === c._id ? (
+                          <motion.div animate={{ rotate: 360 }} transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}>
+                            <Loader size={18} />
+                          </motion.div>
+                        ) : (
+                          <FileDown size={18} />
+                        )}
+                      </motion.button>
+                      <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                        <Link to={`/complaint/${c._id}`} className="w-10 h-10 bg-secondary border border-border hover:bg-primary hover:border-primary hover:text-primary-foreground rounded-xl flex items-center justify-center text-muted-foreground transition-all">
+                          <Eye size={18} />
+                        </Link>
+                      </motion.div>
+                      <motion.button
+                        onClick={() => handleDelete(c._id)}
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="w-10 h-10 bg-secondary border border-border hover:bg-destructive hover:border-destructive hover:text-destructive-foreground rounded-xl flex items-center justify-center text-muted-foreground transition-all"
+                        title="Delete"
+                      >
+                        <Trash2 size={18} />
+                      </motion.button>
                     </div>
                   </div>
-                </div>
-                <StatusTimeline statusHistory={c.statusHistory || []} currentStatus={c.status} />
-                {c.adminNote && (
-                  <div className="mt-3 bg-gray-50 border border-gray-200 rounded-xl p-2.5 text-xs text-gray-800 flex gap-2">
-                    💬 <span><strong>Admin:</strong> {c.adminNote}</span>
+
+
+                  {/* Status Timeline */}
+                  <div className="mb-4 pb-4 border-b border-border">
+                    <StatusTimeline statusHistory={c.statusHistory || []} currentStatus={c.status} />
                   </div>
-                )}
-              </div>
-            ))}
-          </div>
+
+                  {/* Admin Note */}
+                  {c.adminNote && (
+                    <motion.div
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="bg-secondary/50 border border-border rounded-xl p-3 text-sm text-foreground flex gap-2"
+                    >
+                      <span className="text-lg">💬</span>
+                      <div>
+                        <strong className="text-primary font-bold">Admin:</strong> {c.adminNote}
+                      </div>
+                    </motion.div>
+                  )}
+                </motion.div>
+              ))}
+            </AnimatePresence>
+          </motion.div>
         )}
       </div>
     </div>

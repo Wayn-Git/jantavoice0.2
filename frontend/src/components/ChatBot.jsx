@@ -45,7 +45,7 @@ export default function ChatBot({ onOpenReport }) {
         else if (action.type === 'open_gov') navigate('/gov-tracking');
     }
 
-    const fabStyle = { position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 900, width: '56px', height: '56px', borderRadius: '50%', background: 'linear-gradient(135deg,#FF9933,#E8720C)', border: 'none', cursor: 'pointer', fontSize: '24px', boxShadow: '0 4px 20px rgba(255,153,51,.4)', transition: 'all .3s', display: 'flex', alignItems: 'center', justifyContent: 'center', animation: 'floatY 4s ease infinite' };
+    const fabStyle = { position: 'fixed', bottom: '2rem', right: '2rem', zIndex: 900, width: '56px', height: '56px', borderRadius: '28px', background: 'var(--primary)', color: 'white', border: 'none', cursor: 'pointer', fontSize: '24px', boxShadow: '0 4px 14px rgba(0, 113, 227, 0.4)', transition: 'transform 0.2s', display: 'flex', alignItems: 'center', justifyContent: 'center' };
 
     return (
         <>
@@ -55,35 +55,35 @@ export default function ChatBot({ onOpenReport }) {
             </button>
 
             {open && (
-                <div style={{ position: 'fixed', bottom: '5.5rem', right: '2rem', zIndex: 901, width: '360px', height: '520px', background: 'rgba(255,255,255,.97)', backdropFilter: 'blur(20px)', borderRadius: '24px', boxShadow: '0 16px 60px rgba(0,0,0,.18)', display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid rgba(255,153,51,.15)', animation: 'slideUp .3s ease' }}>
+                <div style={{ position: 'fixed', bottom: '5.5rem', right: '2rem', zIndex: 901, width: '360px', height: '520px', background: 'rgba(255,255,255,.9)', backdropFilter: 'blur(24px)', WebkitBackdropFilter: 'blur(24px)', borderRadius: '24px', boxShadow: '0 8px 32px rgba(0,0,0,.12)', display: 'flex', flexDirection: 'column', overflow: 'hidden', border: '1px solid rgba(0,0,0,.08)' }}>
                     {/* Header */}
-                    <div style={{ padding: '1rem 1.25rem', background: 'linear-gradient(135deg,#FF9933,#E8720C)', color: 'white', display: 'flex', alignItems: 'center', gap: '.75rem' }}>
-                        <div style={{ width: '36px', height: '36px', background: 'rgba(255,255,255,.2)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🤖</div>
+                    <div style={{ padding: '1rem 1.25rem', background: 'rgba(255,255,255,0.5)', borderBottom: '1px solid rgba(0,0,0,0.05)', display: 'flex', alignItems: 'center', gap: '.75rem' }}>
+                        <div style={{ width: '36px', height: '36px', background: 'var(--primary)', color: 'white', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px' }}>🤖</div>
                         <div style={{ flex: 1 }}>
-                            <div style={{ fontWeight: '800', fontSize: '1rem', fontFamily: 'Rajdhani,sans-serif' }}>JantaBot</div>
-                            <div style={{ fontSize: '.72rem', opacity: .85 }}>● Online — JantaVoice AI</div>
+                            <div style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--foreground)' }}>JantaBot</div>
+                            <div style={{ fontSize: '.72rem', color: 'var(--muted-foreground)' }}>Online — JantaVoice AI</div>
                         </div>
-                        <button onClick={() => setOpen(false)} style={{ background: 'rgba(255,255,255,.2)', border: 'none', color: 'white', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px' }}>✕</button>
+                        <button onClick={() => setOpen(false)} style={{ background: 'var(--secondary)', border: 'none', color: 'var(--foreground)', width: '28px', height: '28px', borderRadius: '50%', cursor: 'pointer', fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
                     </div>
 
                     {/* Messages */}
                     <div style={{ flex: 1, overflowY: 'auto', padding: '1rem', display: 'flex', flexDirection: 'column', gap: '.75rem' }}>
                         {msgs.map((m, i) => (
                             <div key={i} style={{ display: 'flex', flexDirection: 'column', alignItems: m.role === 'user' ? 'flex-end' : 'flex-start', gap: '.3rem' }}>
-                                <div style={{ maxWidth: '78%', padding: '.65rem .9rem', borderRadius: '16px', fontSize: '.84rem', lineHeight: '1.5', background: m.role === 'user' ? 'linear-gradient(135deg,#FF9933,#E8720C)' : '#F3F4F6', color: m.role === 'user' ? 'white' : '#1A1A1A', borderBottomRightRadius: m.role === 'user' ? '4px' : '16px', borderBottomLeftRadius: m.role === 'bot' ? '4px' : '16px' }}>
+                                <div style={{ maxWidth: '78%', padding: '.65rem .9rem', borderRadius: '18px', fontSize: '.9rem', lineHeight: '1.4', background: m.role === 'user' ? 'var(--primary)' : 'var(--secondary)', color: m.role === 'user' ? 'white' : 'var(--foreground)', borderBottomRightRadius: m.role === 'user' ? '4px' : '18px', borderBottomLeftRadius: m.role === 'bot' ? '4px' : '18px' }}>
                                     {m.text}
                                 </div>
                                 {m.showQuickReplies && (
                                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '.3rem', marginTop: '.25rem' }}>
                                         {QUICK_REPLIES.map(qr => (
-                                            <button key={qr} onClick={() => send(qr)} style={{ background: '#FFF3E0', color: '#E8720C', border: '1px solid rgba(255,153,51,.3)', borderRadius: '16px', padding: '3px 10px', fontSize: '.72rem', fontWeight: '700', cursor: 'pointer', fontFamily: 'Nunito,sans-serif' }}>
+                                            <button key={qr} onClick={() => send(qr)} style={{ background: 'transparent', color: 'var(--primary)', border: '1px solid var(--primary)', borderRadius: '16px', padding: '4px 12px', fontSize: '.75rem', fontWeight: '500', cursor: 'pointer' }}>
                                                 {qr}
                                             </button>
                                         ))}
                                     </div>
                                 )}
                                 {m.action && (
-                                    <button onClick={() => handleAction(m.action)} style={{ background: '#E8F5E9', color: '#0A5C04', border: '1px solid rgba(19,136,8,.25)', borderRadius: '10px', padding: '5px 14px', fontSize: '.78rem', fontWeight: '700', cursor: 'pointer', marginTop: '.2rem', fontFamily: 'Nunito,sans-serif' }}>
+                                    <button onClick={() => handleAction(m.action)} style={{ background: 'var(--secondary)', color: 'var(--foreground)', border: '1px solid var(--border)', borderRadius: '12px', padding: '6px 14px', fontSize: '.8rem', fontWeight: '500', cursor: 'pointer', marginTop: '.2rem' }}>
                                         {m.action.label}
                                     </button>
                                 )}
@@ -98,11 +98,11 @@ export default function ChatBot({ onOpenReport }) {
                     </div>
 
                     {/* Input */}
-                    <div style={{ padding: '.75rem', borderTop: '1px solid #F3F4F6', display: 'flex', gap: '.5rem' }}>
+                    <div style={{ padding: '.75rem', borderTop: '1px solid var(--border)', background: 'transparent', display: 'flex', gap: '.5rem' }}>
                         <input value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && send(input)}
-                            placeholder="Type your message..."
-                            style={{ flex: 1, border: '1.5px solid #E5E7EB', borderRadius: '10px', padding: '8px 12px', fontSize: '.85rem', fontFamily: 'Nunito,sans-serif', outline: 'none' }} />
-                        <button onClick={() => send(input)} style={{ width: '38px', height: '38px', background: 'linear-gradient(135deg,#FF9933,#E8720C)', border: 'none', borderRadius: '10px', cursor: 'pointer', color: 'white', fontSize: '16px' }}>→</button>
+                            placeholder="Message..."
+                            style={{ flex: 1, border: '1px solid var(--border)', borderRadius: '20px', padding: '8px 14px', fontSize: '.9rem', background: 'var(--background)', color: 'var(--foreground)', outline: 'none' }} />
+                        <button onClick={() => send(input)} style={{ width: '36px', height: '36px', background: 'var(--primary)', border: 'none', borderRadius: '50%', cursor: 'pointer', color: 'white', fontSize: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>↑</button>
                     </div>
                 </div>
             )}
