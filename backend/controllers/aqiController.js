@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const OW_KEY = () => 'c961d4568cefec2a540ba39187c81597';
+const OW_KEY = () => process.env.OPENWEATHER_API_KEY || '';
 const IS_DEMO = () => false;
 
 // AQI level mapping
