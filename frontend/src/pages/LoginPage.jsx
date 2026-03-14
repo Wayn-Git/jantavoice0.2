@@ -114,7 +114,7 @@ export default function LoginPage() {
                 onClick={() => setShowPass(!showPass)}
                 className="absolute right-3 top-3.5 text-muted-foreground hover:text-foreground transition-colors"
                 whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
+                whileTap={{ scale: 0.9 }}
               >
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </motion.button>
@@ -128,8 +128,8 @@ export default function LoginPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.25 }}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className="w-full mt-6 btn btn-primary py-3 flex items-center justify-center gap-2"
           >
             {loading ? (

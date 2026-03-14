@@ -1,13 +1,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Loader, Mic, FileText, MapPin, Image, X, Plus, Send, AlertCircle } from 'lucide-react';
+import { Loader, Mic, FileText, MapPin, Image, X, Plus, Send, AlertCircle, Info, AlertTriangle, ShieldAlert, Bot, Building2, Zap, Square, RotateCcw, Sparkles, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { complaintAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import { STATES } from '../utils/helpers';
 import toast from 'react-hot-toast';
-
-import { Info, AlertCircle, AlertTriangle, ShieldAlert } from 'lucide-react';
 
 const CATEGORIES = ['Roads', 'Water', 'Electricity', 'Sanitation', 'Parks', 'Safety', 'Noise', 'Other'];
 const PRIORITIES = [
@@ -212,8 +210,8 @@ export default function ReportPage() {
       if (data.success && data.result) {
         setForm(f => ({ ...f, category: data.result.category || f.category, priority: data.result.priority || f.priority }));
         toast.success('🤖 AI suggested category & priority!');
-      } else toast('AI unavailable, please select manually', { icon: 'ℹ️' });
-    } catch { toast('AI categorization unavailable', { icon: 'ℹ️' }); }
+      } else toast('AI unavailable, please select manually', { icon: <Info size={16} /> });
+    } catch { toast('AI categorization unavailable', { icon: <Info size={16} /> }); }
     finally { setAiLoading(false); }
   };
 
@@ -304,9 +302,9 @@ export default function ReportPage() {
               <p className="text-muted-foreground font-medium text-base">Choose the fastest way to file your civic grievance to the right authority.</p>
             </div>
             <div className="flex -space-x-4 opacity-80">
-              <div className="w-12 h-12 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-xl">⚡</div>
-              <div className="w-12 h-12 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-xl">🎤</div>
-              <div className="w-12 h-12 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-xl">✍️</div>
+              <div className="w-12 h-12 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-primary"><Zap size={20} /></div>
+              <div className="w-12 h-12 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-primary"><Mic size={20} /></div>
+              <div className="w-12 h-12 rounded-full border-2 border-background bg-secondary flex items-center justify-center text-primary"><FileText size={20} /></div>
             </div>
           </div>
         </motion.div>
@@ -322,26 +320,26 @@ export default function ReportPage() {
             onClick={() => setActiveTab('quick')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl transition-all font-semibold text-sm cursor-pointer ${activeTab === 'quick' ? 'bg-background shadow-sm text-foreground border border-border' : 'text-muted-foreground hover:bg-secondary'}`}
+            className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl transition-all font-semibold text-sm cursor-pointer gap-1 ${activeTab === 'quick' ? 'bg-background shadow-sm text-foreground border border-border' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            <span className="text-xl mb-1">⚡</span> Quick File
+            <Zap size={18} className={activeTab === 'quick' ? 'text-primary' : ''} /> Quick File
           </motion.div>
           <motion.div
             onClick={() => setActiveTab('voice')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl transition-all font-semibold text-sm cursor-pointer ${activeTab === 'voice' ? 'bg-background shadow-sm text-foreground border border-border' : 'text-muted-foreground hover:bg-secondary'}`}
+            className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl transition-all font-semibold text-sm cursor-pointer gap-1 ${activeTab === 'voice' ? 'bg-background shadow-sm text-foreground border border-border' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            <span className="text-xl mb-1">🎤</span> Voice
+            <Mic size={18} className={activeTab === 'voice' ? 'text-primary' : ''} /> Voice
           </motion.div>
           <motion.div
             onClick={() => setActiveTab('detailed')}
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl transition-all font-semibold text-sm cursor-pointer ${activeTab === 'detailed' ? 'bg-background shadow-sm text-foreground border border-border' : 'text-muted-foreground hover:bg-secondary'}`}
+            className={`flex-1 flex flex-col items-center justify-center py-3 rounded-xl transition-all font-semibold text-sm cursor-pointer gap-1 ${activeTab === 'detailed' ? 'bg-background shadow-sm text-foreground border border-border' : 'text-muted-foreground hover:bg-secondary'}`}
           >
-            <span className="text-xl mb-1">✍️</span> Detailed
-          </motion.button>
+            <FileText size={18} className={activeTab === 'detailed' ? 'text-primary' : ''} /> Detailed
+          </motion.div>
         </motion.div>
 
         {/* Tab 1: Quick File */}
@@ -397,15 +395,17 @@ export default function ReportPage() {
                       >
                         {loading ? (
                           <><Loader className="animate-spin w-6 h-6" /> {loadingMsg}</>
-                        ) : '⚡ File Report instantly'}
+                        ) : (
+                          <><Zap size={20} /> File Report instantly</>
+                        )}
                       </motion.button>
                     </div>
 
                     {/* Visual Graphic Side */}
                     <div className="hidden lg:flex w-72 h-72 bg-gradient-to-br from-primary/10 to-success/10 rounded-full items-center justify-center border border-border shadow-inner relative">
                       <div className="absolute w-full h-full border-2 border-primary/20 rounded-full animate-ping opacity-20" />
-                      <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="text-8xl drop-shadow-2xl">
-                        🤖
+                      <motion.div animate={{ y: [0, -10, 0] }} transition={{ duration: 4, repeat: Infinity }} className="text-primary drop-shadow-2xl">
+                        <Bot size={80} />
                       </motion.div>
                     </div>
                   </motion.div>
@@ -436,12 +436,13 @@ export default function ReportPage() {
                         <span className="bg-secondary text-foreground text-xs font-bold px-2 py-1 rounded-full">{quickResult.priority} Priority</span>
                       </div>
                       <div className="mt-4 pt-4 border-t border-border flex items-center gap-2 text-sm text-muted-foreground font-medium">
-                        <span className="text-lg">🏛️</span> Routing to Government Portals...
+                        <Building2 size={16} className="text-primary" /> Routing to Government Portals...
                       </div>
                     </motion.div>
                     <p className="text-muted-foreground font-medium text-sm">Redirecting to status page...</p>
                   </motion.div>
                 )}
+              </AnimatePresence>
             </motion.div>
           )}
         </AnimatePresence>
@@ -471,7 +472,7 @@ export default function ReportPage() {
                       whileTap={{ scale: 0.95 }}
                       onClick={startVoice}
                       className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-primary text-primary-foreground text-4xl flex items-center justify-center shadow-lg shadow-primary/30 transition-all border-4 border-background"
-                    >🎙️</motion.button>
+                    ><Mic size={40} /></motion.button>
                   )}
 
                   {recording && (
@@ -482,7 +483,7 @@ export default function ReportPage() {
                         onClick={stopVoice}
                         className="w-20 h-20 md:w-24 md:h-24 rounded-full bg-destructive text-destructive-foreground text-3xl flex items-center justify-center shadow-lg shadow-destructive/30 z-10 relative border-4 border-background"
                       >
-                        ⏹️
+                        <Square size={32} fill="currentColor" />
                       </motion.button>
                       <div className="absolute inset-0 rounded-full animate-ping bg-destructive opacity-40 border-2 border-background" style={{ animationDuration: '1s' }} />
                       <div className="absolute inset-[-10px] rounded-full animate-ping bg-destructive opacity-20" style={{ animationDuration: '1.5s', animationDelay: '0.2s' }} />
@@ -515,11 +516,11 @@ export default function ReportPage() {
 
                   {!recording && transcript && (
                     <div className="flex flex-col sm:flex-row gap-3">
-                      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={startVoice} className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-bold py-4 rounded-xl border border-border transition-colors">
-                        🔄 Retry
+                      <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={startVoice} className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-bold py-4 rounded-xl border border-border transition-colors flex items-center justify-center gap-2">
+                        <RotateCcw size={18} /> Retry
                       </motion.button>
                       <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={processVoiceTranscript} disabled={loading} className="flex-[2] btn btn-primary py-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-50">
-                        {loading ? <><Loader className="w-5 h-5 animate-spin" /> Analyzing...</> : '🤖 Extract Details'}
+                        {loading ? <><Loader className="w-5 h-5 animate-spin" /> Analyzing...</> : <><Sparkles size={18} /> Extract Details</>}
                       </motion.button>
                     </div>
                   )}
@@ -530,7 +531,7 @@ export default function ReportPage() {
                 <div className="flex-1 w-full text-left animate-fade-in flex flex-col items-center justify-center p-6 bg-success/10 rounded-3xl border border-success/20">
                   <div className="w-full bg-background border border-border shadow-sm rounded-2xl p-6 mb-5 space-y-4">
                     <h3 className="font-heading font-bold text-xl text-foreground flex items-center gap-2">
-                      <span className="text-success">✅</span> AI Extracted Details
+                      <CheckCircle2 size={24} className="text-success" /> AI Extracted Details
                     </h3>
                     <div className="flex flex-wrap gap-2">
                       <span className="bg-secondary px-3 py-1.5 rounded-xl text-xs font-bold text-foreground border border-border uppercase tracking-wider">{voiceResult.category}</span>
@@ -548,7 +549,7 @@ export default function ReportPage() {
                   <div className="flex flex-col sm:flex-row w-full gap-3">
                     <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={() => { setVoiceResult(null); setTranscript(''); }} className="flex-1 bg-secondary hover:bg-secondary/80 text-foreground font-bold py-4 rounded-xl border border-border transition-colors">Cancel</motion.button>
                     <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} onClick={submitVoiceComplaint} disabled={loading} className="flex-[2] btn btn-success py-4 rounded-xl flex items-center justify-center gap-2 text-success-foreground font-bold text-lg disabled:opacity-50">
-                      {loading ? <><Loader className="w-5 h-5 animate-spin" /> Submitting...</> : '✅ File Formal Complaint'}
+                      {loading ? <><Loader className="w-5 h-5 animate-spin" /> Submitting...</> : <><CheckCircle2 size={20} /> File Formal Complaint</>}
                     </motion.button>
                   </div>
                 </div>
@@ -608,7 +609,16 @@ export default function ReportPage() {
                           {CATEGORIES.map(cat => (
                             <button key={cat} onClick={() => setForm(f => ({ ...f, category: cat }))}
                               className={`p-4 rounded-xl border-2 text-center transition-all flex flex-col items-center justify-center gap-2 font-bold text-sm ${form.category === cat ? 'border-primary bg-primary/10 text-primary shadow-sm scale-[1.02]' : 'border-border bg-secondary/30 text-foreground hover:bg-secondary hover:border-primary/50'}`}>
-                              <div className="text-2xl drop-shadow-sm">{['🛣️', '💧', '⚡', '🗑️', '🌳', '🛡️', '🔊', '📋'][CATEGORIES.indexOf(cat)]}</div>
+                              <div className="text-2xl drop-shadow-sm">
+                                {cat === 'Roads' && <MapPin size={24} />}
+                                {cat === 'Water' && <Zap size={24} className="text-blue-500" />}
+                                {cat === 'Electricity' && <Zap size={24} className="text-yellow-500" />}
+                                {cat === 'Sanitation' && <Plus size={24} />}
+                                {cat === 'Parks' && <Plus size={24} />}
+                                {cat === 'Safety' && <ShieldAlert size={24} />}
+                                {cat === 'Noise' && <Mic size={24} />}
+                                {cat === 'Other' && <FileText size={24} />}
+                              </div>
                               {cat}
                             </button>
                           ))}
@@ -678,7 +688,9 @@ export default function ReportPage() {
                       </div>
                       <label className="border-2 border-dashed border-border hover:border-primary/50 hover:bg-primary/5 rounded-2xl p-10 text-center cursor-pointer flex flex-col items-center justify-center transition-all bg-secondary/20 h-40 group">
                         <input type="file" multiple accept="image/*" className="hidden" onChange={handleImages} disabled={images.length >= 3} />
-                        <div className="text-4xl mb-3 text-muted-foreground group-hover:scale-110 transition-transform drop-shadow-sm">📸</div>
+                        <div className="text-muted-foreground group-hover:scale-110 transition-transform drop-shadow-sm mb-3">
+                          <Image size={40} />
+                        </div>
                         <p className="text-sm font-medium text-foreground"><span className="text-primary font-bold">Tap to upload</span> or drag and drop images here</p>
                       </label>
                       {previews.length > 0 && (
@@ -686,7 +698,7 @@ export default function ReportPage() {
                           {previews.map((src, i) => (
                             <div key={i} className="relative w-24 h-24 rounded-2xl overflow-hidden border-2 border-border shadow-sm group">
                               <img src={src} alt="" className="w-full h-full object-cover" />
-                              <button onClick={() => removeImage(i)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+                               <button onClick={() => removeImage(i)} className="absolute top-1 right-1 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs flex items-center justify-center shadow-md opacity-0 group-hover:opacity-100 transition-opacity"><X size={14} /></button>
                             </div>
                           ))}
                         </div>
@@ -738,7 +750,7 @@ export default function ReportPage() {
                     </div>
 
                     <div className="bg-success/10 border border-success/20 rounded-2xl p-6 flex items-start gap-4">
-                      <div className="text-3xl drop-shadow-sm">🤖</div>
+                      <div className="text-success"><Bot size={32} /></div>
                       <div>
                         <p className="font-bold text-success text-lg flex items-center gap-2">AI Routing Recommendation <span className="bg-success text-success-foreground text-[10px] px-2 py-0.5 rounded-full uppercase tracking-widest animate-pulse">Active</span></p>
                         <p className="text-foreground font-medium mt-1">This <span className="font-bold">{form.category}</span> issue is optimized for <strong>CPGRAMS</strong> or your regional State Service Portal.</p>
@@ -748,7 +760,7 @@ export default function ReportPage() {
                     <label className="flex items-start gap-4 bg-background border border-primary/30 hover:border-primary/60 p-6 rounded-2xl shadow-sm cursor-pointer transition-colors group">
                       <input type="checkbox" id="autosubmit" checked={form.autoSubmit} onChange={e => setForm(f => ({ ...f, autoSubmit: e.target.checked }))} className="w-6 h-6 rounded text-primary focus:ring-primary border-muted-foreground mt-0.5 bg-secondary" />
                       <div>
-                        <span className="font-bold text-foreground text-lg flex items-center gap-2">🏛️ Auto-submit to Government Portal</span>
+                        <span className="font-bold text-foreground text-lg flex items-center gap-2"><Building2 size={24} className="text-primary" /> Auto-submit to Government Portal</span>
                         <span className="block text-muted-foreground mt-1 text-sm font-medium leading-relaxed group-hover:text-foreground/80 transition-colors">JantaVoice will automatically forward your ticket to the correct government department, bypass the red tape, and live-track its status for you.</span>
                       </div>
                     </label>

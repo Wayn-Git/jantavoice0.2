@@ -229,6 +229,22 @@
     --tw-ring-color: var(--ring);
   }
 
+  .badge-reported {
+    @apply badge bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20;
+  }
+
+  .badge-inprogress {
+    @apply badge bg-orange-500/10 text-orange-600 dark:text-orange-400 border border-orange-500/20;
+  }
+
+  .badge-resolved {
+    @apply badge bg-green-500/10 text-green-600 dark:text-green-400 border border-green-500/20;
+  }
+
+  .badge-rejected {
+    @apply badge bg-slate-500/10 text-slate-600 dark:text-slate-400 border border-slate-500/20;
+  }
+
   /* Universal icon styling matching Apple's SF Symbols weight */
   svg.lucide {
     stroke-width: 1.5px !important;

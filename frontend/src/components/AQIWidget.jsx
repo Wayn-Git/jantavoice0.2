@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { aqiAPI } from '../services/api';
+import { X, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function AQIWidget({ onReportPollution }) {
     const navigate = useNavigate();
@@ -39,7 +40,7 @@ export default function AQIWidget({ onReportPollution }) {
                 <span style={{ fontWeight: '600', fontSize: '.9rem', color: 'var(--foreground)' }}>{loading ? '...' : data?.aqi?.value}</span>
                 <span style={{ fontSize: '.8rem', fontWeight: '500', color: 'var(--muted-foreground)' }}>{loading ? 'AQI' : data?.aqi?.label}</span>
                 <span style={{ fontSize: '.75rem', color: 'var(--muted-foreground)', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data?.city || ''}</span>
-                <span style={{ color: 'var(--muted-foreground)', fontSize: '.8rem' }}>{expanded ? '✕' : '↑'}</span>
+                <span style={{ color: 'var(--muted-foreground)', display: 'flex' }}>{expanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}</span>
             </div>
 
             {/* Expanded popup */}
@@ -51,7 +52,7 @@ export default function AQIWidget({ onReportPollution }) {
                             <div style={{ fontWeight: '600', fontSize: '1rem', color: 'var(--foreground)' }}>{data.city} Air Quality</div>
                             <div style={{ fontSize: '.75rem', color: 'var(--muted-foreground)' }}>Updated recently</div>
                         </div>
-                        <button onClick={() => setExpanded(false)} style={{ background: 'var(--secondary)', border: 'none', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyItems: 'center', cursor: 'pointer', color: 'var(--foreground)' }}>✕</button>
+                        <button onClick={() => setExpanded(false)} style={{ background: 'var(--secondary)', border: 'none', width: '28px', height: '28px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: 'var(--foreground)' }}><X size={14} /></button>
                     </div>
 
                     {/* Gauge */}
@@ -62,7 +63,7 @@ export default function AQIWidget({ onReportPollution }) {
                                 strokeDasharray={circ * 0.75} strokeDashoffset={dashOffset}
                                 style={{ transition: 'stroke-dashoffset 1.5s ease' }} />
                             <text x="70" y="78" textAnchor="middle" fontSize="28" fontWeight="600" fill="var(--foreground)">{data.aqi.value}</text>
-                            <text x="70" y="94" textAnchor="middle" fontSize="12" fill="var(--muted-foreground)">{data.aqi.emoji} {data.aqi.label}</text>
+                            <text x="70" y="94" textAnchor="middle" fontSize="12" fill="var(--muted-foreground)">{data.aqi.label}</text>
                         </svg>
                     </div>
 

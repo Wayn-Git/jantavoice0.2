@@ -40,7 +40,7 @@ export default function RegisterPage() {
     setLoading(true);
     try {
       await register({ name: form.name, email: form.email, password: form.password });
-      toast.success('Account created! Welcome to Janta Voice 🎉');
+      toast.success('Account created! Welcome to Janta Voice');
       navigate('/feed');
     } catch (err) {
       toast.error(err.response?.data?.message || 'Registration failed');
@@ -201,8 +201,8 @@ export default function RegisterPage() {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.35 }}
-            whileHover={{ scale: 1.01 }}
-            whileTap={{ scale: 0.99 }}
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
             className="w-full mt-6 btn btn-primary py-3 flex items-center justify-center gap-2"
           >
             {loading ? (

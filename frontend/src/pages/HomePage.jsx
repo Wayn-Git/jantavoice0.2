@@ -34,7 +34,7 @@ export default function HomePage() {
         {/* 1. HERO BLOCK (Spans 2 rows, 2 cols on Desktop, 3 on LG) */}
         <motion.div
           variants={itemVariants}
-          className="md:col-span-2 lg:col-span-3 row-span-2 bg-white rounded-3xl p-8 flex flex-col justify-between relative overflow-hidden shadow-lg shadow-black/5 border border-border group"
+          className="md:col-span-2 lg:col-span-3 row-span-3 md:row-span-2 bg-card rounded-3xl p-6 md:p-8 flex flex-col justify-between relative overflow-hidden shadow-lg shadow-black/5 border border-border group"
         >
           {/* Subtle India color flair in background */}
           <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-primary via-white to-success" />
@@ -57,12 +57,12 @@ export default function HomePage() {
             <p className="text-base text-muted-foreground leading-relaxed font-medium mb-6">
               Janta Voice translates your spoken issues directly to government departments. No complex forms. AI routes your complaint instantly.
             </p>
-            <div className="flex gap-3">
-              <motion.button onClick={() => navigate('/report')} {...hoverScale} className="btn-primary flex items-center gap-2 px-6 py-3 font-bold shadow-lg shadow-primary/30">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <motion.button onClick={() => navigate('/report')} {...hoverScale} className="btn-primary w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 font-bold shadow-lg shadow-primary/30">
                 <Mic size={18} /> Speak Issue
               </motion.button>
-              <motion.button onClick={() => navigate('/report')} {...hoverScale} className="btn-secondary flex items-center gap-2 px-6 py-3 font-bold bg-secondary hover:bg-secondary/80 text-secondary-foreground">
-                ✍️ Type Report
+              <motion.button onClick={() => navigate('/report')} {...hoverScale} className="btn-secondary w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 font-bold bg-secondary hover:bg-secondary/80 text-secondary-foreground">
+                <FileText size={18} /> Type Report
               </motion.button>
             </div>
           </div>
@@ -83,8 +83,8 @@ export default function HomePage() {
           </div>
         </motion.div>
 
-        {/* 3. VOICE RECORD INLINE WIDGET (Spans 2 cols) */}
-        <motion.div variants={itemVariants} className="md:col-span-2 bg-card rounded-3xl border border-border shadow-sm flex items-center justify-center overflow-hidden p-6 relative group">
+        {/* 3. VOICE RECORD INLINE WIDGET (Spans 2 cols, 2 rows) */}
+        <motion.div variants={itemVariants} className="row-span-2 md:col-span-2 bg-card rounded-3xl border border-border shadow-sm flex items-center justify-center overflow-hidden p-6 relative group">
           <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
           <div className="relative z-10 w-full flex flex-col items-center">
             <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-4">Fast Track Recording</p>
@@ -93,28 +93,28 @@ export default function HomePage() {
         </motion.div>
 
         {/* 4. STATS (Resolved) */}
-        <motion.div variants={itemVariants} className="bg-success text-success-foreground rounded-3xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-6 -top-6 w-24 h-24 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700" />
+        <motion.div variants={itemVariants} className="bg-card border border-border text-foreground rounded-3xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -right-6 -top-6 w-24 h-24 bg-success/10 rounded-full group-hover:scale-150 transition-transform duration-700" />
           <div className="relative z-10 flex justify-between items-start">
-            <p className="text-xs font-bold opacity-90 uppercase tracking-wider">Resolved</p>
-            <CheckCircle2 size={24} />
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Resolved</p>
+            <CheckCircle2 size={24} className="text-success" />
           </div>
           <div className="relative z-10 mt-4">
-            <h3 className="text-3xl font-bold mb-1 tracking-tighter">{stats.resolved}+</h3>
-            <p className="text-xs font-bold opacity-90">↑ 12% this week</p>
+            <h3 className="text-3xl font-bold mb-1 tracking-tighter text-success">{stats.resolved}+</h3>
+            <p className="text-xs font-bold text-muted-foreground">↑ 12% this week</p>
           </div>
         </motion.div>
 
         {/* 5. STATS (Escalated) */}
-        <motion.div variants={itemVariants} className="bg-foreground text-background rounded-3xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group">
-          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-white/10 rounded-full group-hover:scale-150 transition-transform duration-700" />
+        <motion.div variants={itemVariants} className="bg-card border border-border text-foreground rounded-3xl p-6 shadow-sm flex flex-col justify-between relative overflow-hidden group">
+          <div className="absolute -right-6 -bottom-6 w-24 h-24 bg-destructive/10 rounded-full group-hover:scale-150 transition-transform duration-700" />
           <div className="relative z-10 flex justify-between items-start">
-            <p className="text-xs font-bold opacity-80 uppercase tracking-wider">Escalated</p>
-            <FileText size={24} />
+            <p className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Escalated</p>
+            <FileText size={24} className="text-destructive" />
           </div>
           <div className="relative z-10 mt-4">
-            <h3 className="text-3xl font-bold mb-1 tracking-tighter">{stats.tracking}</h3>
-            <p className="text-xs font-bold opacity-80">State Portals</p>
+            <h3 className="text-3xl font-bold mb-1 tracking-tighter text-destructive">{stats.tracking}</h3>
+            <p className="text-xs font-bold text-muted-foreground">State Portals</p>
           </div>
         </motion.div>
 

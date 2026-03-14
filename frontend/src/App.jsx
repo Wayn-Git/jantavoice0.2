@@ -1,23 +1,22 @@
-import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useLocation, Link } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { NotificationProvider } from './context/NotificationContext';
 import AnimatedBackground from './components/AnimatedBackground';
 import Navbar from './components/Navbar';
 import { AnimatePresence, motion } from 'framer-motion';
+import { Map } from 'lucide-react';
 
-// Apple-like spring transition to every route
+// Smooth fade and slide transition for better performance
 export function PageContainer({ children }) {
   return (
     <motion.div
-      initial={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
-      animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-      exit={{ opacity: 0, scale: 0.98, filter: 'blur(4px)' }}
+      initial={{ opacity: 0, scale: 0.98, y: 15 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      exit={{ opacity: 0, scale: 0.98, y: -15 }}
       transition={{
-        type: 'spring',
-        stiffness: 300,
-        damping: 30,
-        mass: 0.8
+        duration: 0.3,
+        ease: [0.22, 1, 0.36, 1] // Apple-like ease-out curve
       }}
       className="w-full h-full"
     >
@@ -99,7 +98,7 @@ function AppContent() {
               <Route path="*" element={
                 <PageContainer>
                   <div className="pt-20 min-h-screen flex flex-col items-center justify-center text-center px-4">
-                    <div className="text-7xl opacity-30 mb-4">🗺️</div>
+                    <div className="flex justify-center mb-6 text-primary"><Map size={80} strokeWidth={1} /></div>
                     <h2 className="font-heading font-bold text-3xl text-gray-600 mb-2">Page Not Found</h2>
                     <p className="text-gray-400 mb-5">The page you're looking for doesn't exist.</p>
                     <a href="/" className="inline-flex items-center gap-2 btn-primary">

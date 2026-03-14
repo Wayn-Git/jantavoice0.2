@@ -148,9 +148,11 @@ export default function GovTrackingPage() {
                                 )}
                             </div>
 
-                            {selectedComplaintId && (
+                             {selectedComplaintId && (
                                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-success/5 border border-success/20 rounded-2xl p-4 flex items-start gap-4">
-                                    <div className="text-2xl mt-0.5">🏛️</div>
+                                    <div className="p-2 bg-white rounded-lg shadow-sm border border-border text-primary">
+                                        <Building2 size={20} />
+                                    </div>
                                     <div>
                                         <p className="font-bold text-success text-sm mb-1">State Portal Bound</p>
                                         <p className="text-xs text-muted-foreground font-medium leading-relaxed">AI has selected the optimal portal based on issue category.</p>

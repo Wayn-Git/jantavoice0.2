@@ -7,7 +7,7 @@ export default function BottomNav() {
     const { isAuthenticated } = useAuth();
 
     const navItemClass = ({ isActive }) =>
-        `flex flex-col items-center justify-center w-full h-full space-y-1 transition-colors ${isActive
+        `flex-1 flex flex-col items-center justify-center h-full space-y-1 transition-colors ${isActive
             ? 'text-primary'
             : 'text-muted-foreground hover:text-foreground'
         }`;
@@ -22,11 +22,11 @@ export default function BottomNav() {
                 <List size={22} />
                 <span className="text-[10px] font-medium">Feed</span>
             </NavLink>
-            <NavLink to="/report" className="relative -top-4 flex flex-col items-center justify-center">
-                <div className="bg-primary text-primary-foreground p-3 rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform">
-                    <PlusCircle size={26} fill="currentColor" stroke="var(--primary)" strokeWidth={1.5} className="text-white" />
+            <NavLink to="/report" className="flex-1 flex flex-col items-center justify-center h-full relative group">
+                <div className="bg-primary/10 text-primary p-2 flex items-center justify-center rounded-xl group-active:scale-95 transition-transform mb-1">
+                    <PlusCircle size={24} strokeWidth={2} className="text-primary" />
                 </div>
-                <span className="text-[10px] font-medium text-foreground mt-1">Report</span>
+                <span className="text-[10px] font-medium text-foreground">Report</span>
             </NavLink>
             {isAuthenticated ? (
                 <NavLink to="/profile" className={navItemClass}>

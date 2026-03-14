@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { TrendingUp, Clock, CheckCircle2, Zap, Mic, FileText, MapPin, FileDown, Activity, Server } from 'lucide-react';
+import { TrendingUp, Clock, CheckCircle2, Zap, Mic, FileText, MapPin, FileDown, Activity, Server, Flag } from 'lucide-react';
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -39,7 +39,7 @@ export default function LandingPage() {
               className="inline-flex items-center gap-2 bg-secondary text-primary border border-border rounded-full px-4 py-2 text-sm font-semibold mb-6"
               whileHover={{ scale: 1.02 }}
             >
-              🇮🇳 India's Civic Platform
+              <Flag size={14} className="text-primary" /> India's Civic Platform
             </motion.div>
             <h1 className="text-4xl lg:text-5xl font-bold text-foreground leading-tight mb-4 tracking-tight">
               Your Voice Matters.<br />
