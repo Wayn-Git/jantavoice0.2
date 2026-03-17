@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
 
 const automationRuleSchema = new mongoose.Schema({
+    ruleId: { type: String, unique: true },
     name: { type: String, required: true },
-    trigger: {
-        type: { type: String, enum: ['time_elapsed', 'likes_threshold', 'gov_status_change', 'priority_level', 'no_update'] },
-        value: { type: mongoose.Schema.Types.Mixed }
+    description: String,
+    trigger: { 
+        type: String, 
+        enum: ['time_elapsed', 'likes_threshold', 'gov_status_change', 'priority_level', 'no_update', 'on_create', 'status_change'] 
     },
-    condition: {
-        category: [String],   // apply to these categories only, empty = all
-        priority: [String],
-        status: [String]
+    triggerValue: mongoose.Schema.Types.Mixed,
+    condition: { type: mongoose.Schema.Types.Mixed, default: {} },
+    action: { 
+        type: String, 
+        enum: ['change_status', 'send_notification', 'escalate_priority', 'submit_to_gov', 'generate_letter', 'send_email', 'ai_response'] 
     },
-    action: {
-        type: { type: String, enum: ['change_status', 'send_notification', 'escalate_priority', 'submit_to_gov', 'generate_letter', 'send_email', 'ai_response'] },
-        value: mongoose.Schema.Types.Mixed
-    },
+    actionValue: mongoose.Schema.Types.Mixed,
     isActive: { type: Boolean, default: true },
     runCount: { type: Number, default: 0 },
     lastRun: { type: Date }
