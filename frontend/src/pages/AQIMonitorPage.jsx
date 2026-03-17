@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { aqiAPI } from '../services/aqiService';
+import { aqiAPI } from '../services/api';
 import {
   Wind, Search, MapPin, RefreshCw, AlertCircle, ArrowLeft,
   BarChart2, FlaskConical, Calendar, Activity, Baby, Users,

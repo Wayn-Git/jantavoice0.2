@@ -48,6 +48,7 @@ export const complaintAPI = {
 
 export const aqiAPI = {
   getByCoords: (lat, lon) => api.get('/aqi', { params: { lat, lon } }),
+  get: (lat, lon) => api.get('/aqi', { params: { lat, lon } }), // Alias for getByCoords
   getByCity: name => api.get('/aqi/city', { params: { name } }),
   getCities: () => api.get('/aqi/cities'),
   getForecast: (lat, lon) => api.get('/aqi/forecast', { params: { lat, lon } }),
