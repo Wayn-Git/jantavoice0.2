@@ -61,12 +61,16 @@ async function start() {
     process.exit(1);
   }
 
-  // Start ngrok for Twilio webhooks
-  try {
-    const { startNgrok } = require('./services/ngrokService');
-    await startNgrok(PORT);
-  } catch (e) {
-    console.warn('⚠️  ngrok skipped:', e.message);
+  // Start ngrok for Twilio webhooks (only in development)
+  if (process.env.NODE_ENV !== 'production') {
+    try {
+      const { startNgrok } = require('./services/ngrokService');
+      await startNgrok(PORT);
+    } catch (e) {
+      console.warn('⚠️  ngrok skipped:', e.message);
+    }
+  } else {
+    console.log('🌐 Production mode: ngrok skipped');
   }
 
   app.listen(PORT, () => {
