@@ -13,6 +13,11 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 // ── Static files ──
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
+// ── Root Route ──
+app.get('/', (req, res) => {
+  res.json({ success: true, message: 'Janta Voice API Backend is running!' });
+});
+
 // ── Health check ──
 app.get('/api/health', (req, res) => res.json({
   status: 'ok',
