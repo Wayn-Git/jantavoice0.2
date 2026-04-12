@@ -39,6 +39,7 @@ import AutomationAdminPage from './pages/AutomationAdminPage';
 import NotificationsPage from './pages/NotificationsPage';
 import LettersPage from './pages/LettersPage';
 import AQIMonitorPage from './pages/AQIMonitorPage';
+import ProfilePage from './pages/ProfilePage';
 
 import BottomNav from './components/BottomNav';
 import ChatBot from './components/ChatBot';
@@ -94,6 +95,7 @@ function AppContent() {
               <Route path="/letters" element={<PageContainer><ProtectedRoute><LettersPage /></ProtectedRoute></PageContainer>} />
               <Route path="/automation-admin" element={<PageContainer><AdminRoute><AutomationAdminPage /></AdminRoute></PageContainer>} />
               <Route path="/admin" element={<PageContainer><AdminRoute><AdminPage /></AdminRoute></PageContainer>} />
+              <Route path="/profile" element={<PageContainer><ProtectedRoute><ProfilePage /></ProtectedRoute></PageContainer>} />
               <Route path="/aqi-monitor" element={<PageContainer><AQIMonitorPage /></PageContainer>} />
               <Route path="*" element={
                 <PageContainer>

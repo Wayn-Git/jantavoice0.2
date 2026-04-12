@@ -48,7 +48,7 @@ export const complaintAPI = {
   addComment: (id, d) => api.post('/complaints/' + id + '/comment', d),
   updateStatus: (id, d) => api.put('/complaints/' + id + '/status', d),
   delete: id => api.delete('/complaints/' + id),
-  getLetter: id => api.get('/complaints/' + id + '/letter', { responseType: 'blob' }),
+  generateLetter: id => api.get('/complaints/' + id + '/generate-letter', { responseType: 'blob' }),
 };
 
 export const aqiAPI = {

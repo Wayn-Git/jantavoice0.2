@@ -601,13 +601,21 @@ export default function AQIMonitorPage() {
                           className="text-foreground pointer-events-none" style={{ letterSpacing: '0.02em' }}>
                           {name}
                         </text>
-                        {isHov && cd?.aqi?.value && (
-                          <g>
-                            <rect x={x - 18} y={y - 30} width={36} height={18} rx={5} fill={col} opacity={0.95} />
-                            <text x={x} y={y - 17} textAnchor="middle" fontSize="9" fontWeight="800" fill="white"
-                              style={{ letterSpacing: '-0.5px' }}>{cd.aqi.value}</text>
-                          </g>
-                        )}
+                        <AnimatePresence>
+                          {isHov && cd?.aqi?.value && (
+                            <motion.g
+                              initial={{ opacity: 0, y: 4, scale: 0.8 }}
+                              animate={{ opacity: 1, y: 0, scale: 1 }}
+                              exit={{ opacity: 0, y: 4, scale: 0.8 }}
+                              transition={{ duration: 0.15, ease: 'easeOut' }}
+                              style={{ transformOrigin: `${x}px ${y}px` }}
+                            >
+                              <rect x={x - 18} y={y - 30} width={36} height={18} rx={5} fill={col} opacity={0.95} />
+                              <text x={x} y={y - 17} textAnchor="middle" fontSize="9" fontWeight="800" fill="white"
+                                style={{ letterSpacing: '-0.5px' }}>{cd.aqi.value}</text>
+                            </motion.g>
+                          )}
+                        </AnimatePresence>
                       </g>
                     );
                   })}
