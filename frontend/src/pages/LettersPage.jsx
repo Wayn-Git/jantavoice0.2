@@ -28,7 +28,7 @@ export default function LettersPage() {
         setGeneratingId(id);
         const toastId = toast.loading(`🤖 AI is drafting "${title.substring(0, 20)}..."`);
         try {
-            const res = await complaintAPI.getLetter(id);
+            const res = await complaintAPI.generateLetter(id);
             const blob = new Blob([res.data], { type: 'application/pdf' });
 
             // Extract filename from header if possible
