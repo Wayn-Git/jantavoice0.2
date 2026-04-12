@@ -39,6 +39,7 @@ export const complaintAPI = {
   create: (d, config) => api.post('/complaints', d, config),
   quickFile: d => api.post('/complaints/quick-file', d),
   aiCategorize: d => api.post('/complaints/ai-categorize', d),
+  transcribeAudio: d => api.post('/complaints/transcribe', d),
   getAll: p => api.get('/complaints', { params: p }),
   getMy: () => api.get('/complaints/my'),
   getStats: () => api.get('/complaints/stats'),
