@@ -1,6 +1,10 @@
 import axios from 'axios';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+let BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+// Ensure BASE_URL ends with /api to avoid 404 Not Found errors
+if (!BASE_URL.endsWith('/api')) {
+  BASE_URL = BASE_URL.replace(/\/$/, '') + '/api';
+}
 
 const api = axios.create({ baseURL: BASE_URL, timeout: 30000 });
 

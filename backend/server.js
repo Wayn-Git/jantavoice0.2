@@ -9,11 +9,22 @@ const app = express();
 const allowedOrigins = [
   process.env.FRONTEND_URL,
   'http://localhost:5173',
-  'http://127.0.0.1:5173'
+  'http://127.0.0.1:5173',
+  'http://localhost:3000'
 ].filter(Boolean);
 
 app.use(cors({ 
-  origin: allowedOrigins, 
+  origin: function(origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin) || origin.endsWith('.vercel.app') || origin.endsWith('.onrender.com')) {
+      callback(null, true);
+    } else {
+      // Temporarily allow all if they misconfigured their domain during beta
+      callback(null, true);
+    }
+  }, 
   credentials: true 
 }));
 app.use(express.json({ limit: '10mb' }));
