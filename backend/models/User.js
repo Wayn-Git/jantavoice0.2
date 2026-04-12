@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const userSchema = new mongoose.Schema({
   name: {
@@ -53,6 +54,8 @@ const userSchema = new mongoose.Schema({
   }],
   warnings: { type: Number, default: 0 },
   isSuspended: { type: Boolean, default: false },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
   // Add comment: "PRIVACY POLICY: Do NOT add Aadhaar, govt ID, or sensitive fields"
 }, { timestamps: true });
 
@@ -68,10 +71,30 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
   return bcrypt.compare(candidatePassword, this.password);
 };
 
+// Generate and hash password token
+userSchema.methods.getResetPasswordToken = function () {
+  // Generate random 20 byte hex token
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  // Hash token and set to resetPasswordToken field
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  // Set expire strictly to 10 minutes
+  this.resetPasswordExpire = Date.now() + 10 * 60 * 1000;
+
+  // return the pure unhashed token to be sent to user
+  return resetToken;
+};
+
 // Public profile (no password)
 userSchema.methods.toPublic = function () {
   const obj = this.toObject();
   delete obj.password;
+  delete obj.resetPasswordToken;
+  delete obj.resetPasswordExpire;
   return obj;
 };
 

@@ -1,6 +1,8 @@
 const jwt = require('jsonwebtoken');
+const crypto = require('crypto');
 const User = require('../models/User');
 const Notification = require('../models/Notification');
+const sendEmail = require('../utils/sendEmail');
 
 const generateToken = (id, role) =>
   jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRE || '7d' });
@@ -132,4 +134,78 @@ const changePassword = async (req, res, next) => {
   }
 };
 
-module.exports = { register, login, getProfile, updateProfile, changePassword };
+// POST /api/auth/forgot-password
+const forgotPassword = async (req, res, next) => {
+  try {
+    if (!req.body.email) return res.status(400).json({ success: false, message: 'Please provide an email' });
+    const user = await User.findOne({ email: req.body.email.toLowerCase() });
+    
+    if (!user) {
+      // Precaution against email enumeration: return success even if not found
+      return res.status(200).json({ success: true, message: 'If that email exists, a reset link was sent.' });
+    }
+
+    const resetToken = user.getResetPasswordToken();
+    await user.save({ validateBeforeSave: false });
+
+    // Try VITE_FRONTEND_URL first (from env), fallback to Origin from Headers.
+    const frontendUrl = process.env.VITE_FRONTEND_URL || req.headers.origin || `http://${req.headers.host}`;
+    const resetUrl = `${frontendUrl}/reset-password/${resetToken}`;
+
+    const message = `You are receiving this email because you (or someone else) has requested a password reset. \n\nPlease click the link below to verify your identity and set a new password:\n\n${resetUrl}\n\nIf you did not request this, please ignore this email and your password will remain unchanged.`;
+
+    try {
+      await sendEmail({
+        email: user.email,
+        subject: 'Janta Voice - Password Reset Link',
+        message
+      });
+      res.status(200).json({ success: true, message: 'If that email exists, a reset link was sent.' });
+    } catch (err) {
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpire = undefined;
+      await user.save({ validateBeforeSave: false });
+      return res.status(500).json({ success: false, message: 'Email could not be sent' });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
+// PUT /api/auth/reset-password/:token
+const resetPassword = async (req, res, next) => {
+  try {
+    const resetPasswordToken = crypto.createHash('sha256').update(req.params.token).digest('hex');
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      return res.status(400).json({ success: false, message: 'Invalid or expired token' });
+    }
+
+    if (!req.body.password || req.body.password.length < 6) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 6 characters.' });
+    }
+
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+    await user.save();
+
+    const token = generateToken(user._id, user.role);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset successful',
+      token,
+      user: { id: user._id, name: user.name, email: user.email, role: user.role, avatar: user.avatar }
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+module.exports = { register, login, getProfile, updateProfile, changePassword, forgotPassword, resetPassword };

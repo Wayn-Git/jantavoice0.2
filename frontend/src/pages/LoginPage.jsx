@@ -119,6 +119,11 @@ export default function LoginPage() {
                 {showPass ? <EyeOff size={18} /> : <Eye size={18} />}
               </motion.button>
             </motion.div>
+            <div className="flex justify-end mt-2">
+              <Link to="/forgot-password" className="text-xs font-bold text-primary hover:text-primary/80 transition-colors">
+                Forgot Password?
+              </Link>
+            </div>
           </motion.div>
 
           {/* Submit Button */}

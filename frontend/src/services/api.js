@@ -33,6 +33,8 @@ export const authAPI = {
   register: d => api.post('/auth/register', d),
   profile: () => api.get('/auth/profile'),
   logout: () => api.post('/auth/logout'),
+  forgotPassword: d => api.post('/auth/forgot-password', d),
+  resetPassword: (token, password) => api.put(`/auth/reset-password/${token}`, { password }),
 };
 
 export const complaintAPI = {

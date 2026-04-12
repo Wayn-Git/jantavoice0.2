@@ -40,6 +40,8 @@ import NotificationsPage from './pages/NotificationsPage';
 import LettersPage from './pages/LettersPage';
 import AQIMonitorPage from './pages/AQIMonitorPage';
 import ProfilePage from './pages/ProfilePage';
+import ForgotPasswordPage from './pages/ForgotPasswordPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 
 import BottomNav from './components/BottomNav';
 import ChatBot from './components/ChatBot';
@@ -86,6 +88,8 @@ function AppContent() {
               <Route path="/landing" element={<PageContainer><LandingPage /></PageContainer>} />
               <Route path="/login" element={<PageContainer><PublicOnlyRoute><LoginPage /></PublicOnlyRoute></PageContainer>} />
               <Route path="/register" element={<PageContainer><PublicOnlyRoute><RegisterPage /></PublicOnlyRoute></PageContainer>} />
+              <Route path="/forgot-password" element={<PageContainer><PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute></PageContainer>} />
+              <Route path="/reset-password/:token" element={<PageContainer><PublicOnlyRoute><ResetPasswordPage /></PublicOnlyRoute></PageContainer>} />
               <Route path="/feed" element={<PageContainer><FeedPage /></PageContainer>} />
               <Route path="/complaint/:id" element={<PageContainer><ComplaintDetailPage /></PageContainer>} />
               <Route path="/report" element={<PageContainer><ProtectedRoute><ReportPage /></ProtectedRoute></PageContainer>} />
