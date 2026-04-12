@@ -43,10 +43,14 @@ export default function ForgotPasswordPage() {
           <ArrowLeft size={16} /> Back to Login
         </Link>
         
-        <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-          <Mail size={32} className="text-primary" />
-        </div>
-        
+        <motion.img
+            src="/logo.jpeg"
+            alt="Janta Voice Logo"
+            className="w-16 h-auto mx-auto mb-6 object-contain"
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
+
         <h1 className="text-2xl font-bold text-foreground mb-2 tracking-tight">Forgot Password?</h1>
         
         {!sent ? (

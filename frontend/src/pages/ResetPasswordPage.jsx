@@ -66,9 +66,13 @@ export default function ResetPasswordPage() {
         className="glass-card w-full max-w-md p-8 sm:p-10"
       >
         <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Lock size={32} className="text-primary" />
-          </div>
+          <motion.img
+            src="/logo.jpeg"
+            alt="Janta Voice Logo"
+            className="w-16 h-auto mx-auto mb-6 object-contain"
+            animate={{ y: [0, -5, 0] }}
+            transition={{ duration: 3, repeat: Infinity }}
+          />
           <h1 className="text-2xl font-bold text-foreground mb-2 tracking-tight">Set New Password</h1>
           <p className="text-muted-foreground text-sm font-medium">Please enter your new strong password.</p>
         </div>

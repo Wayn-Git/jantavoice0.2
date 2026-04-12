@@ -33,19 +33,19 @@ export default function AQIWidget({ onReportPollution }) {
     const dashOffset = circ * (1 - pct * 0.75);
 
     return (
-        <div style={{ position: 'fixed', bottom: '2rem', left: '2rem', zIndex: 800 }}>
+        <div className="fixed z-[800] max-w-[calc(100vw-2rem)] bottom-28 md:bottom-8 left-4 md:left-8">
             {/* Collapsed pill */}
-            <div onClick={() => setExpanded(p => !p)} className="glass" style={{ display: 'flex', alignItems: 'center', gap: '8px', borderRadius: '50px', padding: '8px 16px', cursor: 'pointer', boxShadow: '0 4px 14px rgba(0,0,0,.08)', transition: 'transform .2s', userSelect: 'none' }}>
+            <div onClick={() => setExpanded(p => !p)} className="glass flex items-center gap-2 rounded-full px-4 py-2 cursor-pointer shadow-lg transition-transform select-none">
                 <span style={{ width: '8px', height: '8px', borderRadius: '50%', background: color, display: 'inline-block', flexShrink: 0 }} />
-                <span style={{ fontWeight: '600', fontSize: '.9rem', color: 'var(--foreground)' }}>{loading ? '...' : data?.aqi?.value}</span>
-                <span style={{ fontSize: '.8rem', fontWeight: '500', color: 'var(--muted-foreground)' }}>{loading ? 'AQI' : data?.aqi?.label}</span>
-                <span style={{ fontSize: '.75rem', color: 'var(--muted-foreground)', maxWidth: '90px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{data?.city || ''}</span>
-                <span style={{ color: 'var(--muted-foreground)', display: 'flex' }}>{expanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}</span>
+                <span className="font-semibold text-[.9rem] text-foreground">{loading ? '...' : data?.aqi?.value}</span>
+                <span className="text-[.8rem] font-medium text-muted-foreground">{loading ? 'AQI' : data?.aqi?.label}</span>
+                <span className="text-[.75rem] text-muted-foreground max-w-[90px] truncate">{data?.city || ''}</span>
+                <span className="text-muted-foreground flex">{expanded ? <ChevronDown size={16} /> : <ChevronUp size={16} />}</span>
             </div>
 
             {/* Expanded popup */}
             {expanded && data && (
-                <div className="glass" style={{ position: 'absolute', bottom: '54px', left: 0, width: '300px', borderRadius: '24px', boxShadow: '0 12px 32px rgba(0,0,0,.12)', overflow: 'hidden' }}>
+                <div className="glass absolute bottom-[54px] left-0 w-[300px] max-w-[calc(100vw-2rem)] rounded-3xl shadow-xl overflow-hidden">
                     {/* Header */}
                     <div style={{ padding: '1.25rem 1.25rem 1rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                         <div>

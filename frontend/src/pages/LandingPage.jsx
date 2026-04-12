@@ -35,6 +35,14 @@ export default function LandingPage() {
           <div className="absolute -top-32 -right-32 w-96 h-96 bg-primary/5 rounded-full blur-3xl group-hover:bg-primary/10 transition-colors duration-700" />
 
           <div className="relative z-10 max-w-2xl mt-auto">
+            <motion.img
+              src="/logo.jpeg"
+              alt="Janta Voice Logo"
+              className="w-20 h-auto mb-6 rounded-2xl shadow-xl border border-border/50 object-contain"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.5, ease: "backOut" }}
+            />
             <motion.div
               className="inline-flex items-center gap-2 bg-secondary text-primary border border-border rounded-full px-4 py-2 text-sm font-semibold mb-6"
               whileHover={{ scale: 1.02 }}

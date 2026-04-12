@@ -29,9 +29,7 @@ export default function Navbar() {
 
         {/* Left: Logo */}
         <Link to="/" className="flex items-center gap-2 group">
-          <div className="w-8 h-8 bg-black dark:bg-white rounded-xl flex items-center justify-center text-white dark:text-black shadow-sm transition-transform group-hover:scale-105">
-            <Megaphone size={18} strokeWidth={2} />
-          </div>
+          <img src="/logo.jpeg" alt="Janta Voice" className="w-9 h-9 border border-border shadow-md rounded-[10px] object-contain transition-transform group-hover:scale-105" />
           <span className="font-semibold text-lg tracking-tight text-foreground hidden sm:block">
             Janta Voice
           </span>
@@ -71,7 +69,7 @@ export default function Navbar() {
                 </button>
 
                 {dropNotif && (
-                  <div className="absolute right-0 top-12 bg-background border border-border rounded-2xl shadow-xl shadow-black/5 w-80 overflow-hidden z-50 flex flex-col max-h-[400px]">
+                  <div className="absolute right-0 top-12 bg-background border border-border rounded-2xl shadow-xl shadow-black/5 w-[calc(100vw-2rem)] sm:w-80 overflow-hidden z-50 flex flex-col max-h-[400px]">
                     <div className="px-5 py-4 border-b border-border flex justify-between items-center bg-secondary/30">
                       <h3 className="font-bold text-foreground text-sm tracking-wide">Notifications</h3>
                       <div className="flex gap-4 items-center">

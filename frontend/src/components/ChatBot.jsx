@@ -55,7 +55,7 @@ export default function ChatBot({ onOpenReport }) {
 
     return (
         <>
-            <button className="fixed z-[900] bottom-[90px] md:bottom-8 right-6 md:right-28 w-14 h-14 rounded-full bg-primary text-white shadow-xl hover:scale-105 active:scale-95 transition-transform flex items-center justify-center border-none cursor-pointer" onClick={() => { setOpen(p => !p); setUnread(0); }}>
+            <button className="fixed z-[900] bottom-28 md:bottom-8 right-6 md:right-28 w-14 h-14 rounded-full bg-primary text-white shadow-xl hover:scale-105 active:scale-95 transition-transform flex items-center justify-center border-none cursor-pointer" onClick={() => { setOpen(p => !p); setUnread(0); }}>
                 {open ? <X size={24} /> : <Bot size={24} />}
                 {!open && unread > 0 && <span className="absolute -top-1 -right-1 bg-destructive text-white rounded-full w-[18px] h-[18px] text-[10px] font-bold flex items-center justify-center">{unread}</span>}
             </button>
